@@ -31,7 +31,7 @@ public:
     typedef const node_pointer const_node_pointer;
 
 public:
-    RBTree() : _root(nullptr){}
+    RBTree() : _root(nullptr) {}
 
     ~RBTree();
 
@@ -52,7 +52,7 @@ public:
 
 private:
 
-    void insertFix(node *x);
+    int insertFix(node_pointer gParent, int gParent_child_tag, node_pointer parent, const_ref_type data);
 
     void turnRight(node *x);
 
@@ -62,6 +62,40 @@ private:
 
     node_pointer _root;
 };
+
+template<typename T>
+int RBTree<T>::insert(const_ref_type data) {
+    if (_root == nullptr) {
+        _root = new node_value_type(data, BLACK);
+        return 0;
+    }
+
+    return insertFix(nullptr, RIGHT_CHILD, _root, data);
+}
+
+template<typename T>
+int RBTree<T>::insertFix(
+        RBTree::node_pointer gParent,
+        int gParent_child_tag,
+        RBTree::node_pointer parent,
+        const_ref_type data) {
+    if(parent == nullptr){
+        parent = new node_value_type(data, RED);
+        gParent_child_tag == LEFT_CHILD ? gParent->_l_child = parent : gParent->_r_child = parent;
+        parent->_parent = gParent;
+        if (gParent->_color == RED){
+            //TODO:BALANCE
+        }
+        return 0;
+    }else if(parent->_data == data){
+        //TODO:add copy or not?
+    }else if(parent->_data > data){
+        return insertFix(parent, LEFT_CHILD, parent->_l_child, data);
+    }else{
+        return insertFix(parent, RIGHT_CHILD, parent->_r_child, data);
+    }
+    return 0;
+}
 
 node *RBTree::Insert(int data) {
     node *current, *parent, *x;
@@ -334,5 +368,6 @@ RBTree::~RBTree() {
         deleteUnit(_root);
     }
 }
+
 
 #endif //TP2022_CPP_SET_RBTREE_H
