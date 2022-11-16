@@ -1,21 +1,24 @@
 #ifndef TP2022_CPP_SET_RBTREE_H
 #define TP2022_CPP_SET_RBTREE_H
 
-const auto RED = 0;
-const auto BLACK = 1;
-const auto NULL_NODE = -100;
-const auto LEFT_CHILD = 0;
-const auto RIGHT_CHILD = 1;
+enum class rbSupport {
+    RED = 0,
+    BLACK = 1,
+    NULL_NODE = -100,
+    LEFT_CHILD = 0,
+    RIGHT_CHILD = 1
+};
+
 
 template<typename T>
 class rbTreeNode {
 public:
-    rbTreeNode(const T &data, int color)
+    rbTreeNode(const T &data, rbSupport color)
             : _data(data), _color(color), _parent(nullptr), _l_child(nullptr), _r_child(nullptr) {}
 
 public:
     T _data;
-    int _color;
+    rbSupport _color;
     rbTreeNode *_parent;
     rbTreeNode *_l_child;
     rbTreeNode *_r_child;
@@ -43,9 +46,6 @@ public:
 
     void searchUnit(int data, struct node *_node);
 
-    void deleteUnit(struct node *_node);
-
-
     int inorder(struct node *_node);
 
     int preorder(struct node *_node);
@@ -54,9 +54,9 @@ public:
 
 private:
 
-    int _insert_(node_pointer parent, int parent_child_tag, node_pointer current, const_ref_type data);
+    int _insert_(node_pointer parent, rbSupport parent_child_tag, node_pointer current, const_ref_type data);
 
-    int _delete_node_(node_pointer parent, int parent_child_tag, node_pointer current_node, const_ref_type data);
+    int _delete_node_(node_pointer parent, rbSupport parent_child_tag, node_pointer current_node, const_ref_type data);
 
     void _insert_handle_balance_(node_pointer current);
 
@@ -66,40 +66,37 @@ private:
 
     node_pointer _turn_left_(node_pointer current);
 
-
-    void deleteFix(node *x);
-
     node_pointer _root;
 };
 
 template<typename T>
 RBTree<T>::~RBTree() {
-    while (_root != NIL) {
-        deleteUnit(_root);
-    }
+//    while (_root != nullptr) {
+//        delete_node(_root);
+//    }
 }
 
 template<typename T>
 int RBTree<T>::insert(const_ref_type data) {
     if (_root == nullptr) {
-        _root = new node_value_type(data, BLACK);
+        _root = new rbTreeNode<T>(data, rbSupport::BLACK);
         return 0;
     }
 
-    return _insert_(nullptr, RIGHT_CHILD, _root, data);
+    return _insert_(nullptr, rbSupport::RIGHT_CHILD, _root, data);
 }
 
 template<typename T>
 int RBTree<T>::_insert_(
         RBTree::node_pointer parent,
-        int parent_child_tag,
+        rbSupport parent_child_tag,
         RBTree::node_pointer current,
         const_ref_type data) {
     if (current == nullptr) {
-        current = new node_value_type(data, RED);
-        parent_child_tag == LEFT_CHILD ? parent->_l_child = current : parent->_r_child = current;
+        current = new node_value_type(data, rbSupport::RED);
+        parent_child_tag == rbSupport::LEFT_CHILD ? parent->_l_child = current : parent->_r_child = current;
         current->_parent = parent;
-        if (parent->_color == RED) {
+        if (parent->_color == rbSupport::RED) {
             _insert_handle_balance_(current);
         }
         return 0;
@@ -107,50 +104,50 @@ int RBTree<T>::_insert_(
         //TODO:add copy or not?
         return -1;
     } else if (current->_data > data) {
-        return _insert_(current, LEFT_CHILD, current->_l_child, data);
+        return _insert_(current, rbSupport::LEFT_CHILD, current->_l_child, data);
     } else {
-        return _insert_(current, RIGHT_CHILD, current->_r_child, data);
+        return _insert_(current, rbSupport::RIGHT_CHILD, current->_r_child, data);
     }
 }
 
 template<typename T>
 void RBTree<T>::_insert_handle_balance_(RBTree::node_pointer current) {
-    for (; current->_parent && current->_parent->_parent && current->_parent->_color == RED;) {
+    for (; current->_parent && current->_parent->_parent && current->_parent->_color == rbSupport::RED;) {
         auto parent = current->_parent;
         auto gParent = parent->_parent;
         auto uncle = (gParent->_l_child == parent ? gParent->_r_child : gParent->_l_child);
 
         if (gParent->_l_child == parent) {
-            if (uncle && uncle._color == RED) {
-                parent->_color = uncle->_color = BLACK;
-                gParent->_color = RED;
+            if (uncle && uncle->_color == rbSupport::RED) {
+                parent->_color = uncle->_color = rbSupport::BLACK;
+                gParent->_color = rbSupport::RED;
                 current = gParent;
             } else {
                 if (parent->_r_child == current) {
                     _turn_left_(parent);
                     std::swap(current, parent);
                 }
-                parent->_color = BLACK;
-                gParent->_color = RED;
+                parent->_color = rbSupport::BLACK;
+                gParent->_color = rbSupport::RED;
                 _turn_right_(gParent);
             }
         } else {
-            if (uncle && uncle._color == RED) {
-                parent->_color = uncle->_color = BLACK;
-                gParent->_color = RED;
+            if (uncle && uncle->_color == rbSupport::RED) {
+                parent->_color = uncle->_color = rbSupport::BLACK;
+                gParent->_color = rbSupport::RED;
                 current = gParent;
             } else {
                 if (parent->_l_child == current) {
                     _turn_right_(parent);
                     std::swap(current, parent);
                 }
-                parent->_color = BLACK;
-                gParent->_color = RED;
+                parent->_color = rbSupport::BLACK;
+                gParent->_color = rbSupport::RED;
                 _turn_left_(gParent);
             }
         }
     }
-    _root->_color = BLACK;
+    _root->_color = rbSupport::BLACK;
 }
 
 template<typename T>
@@ -159,28 +156,28 @@ int RBTree<T>::delete_node(const_ref_type data) {
         return -1;
     }
 
-    return _delete_node_(nullptr, RIGHT_CHILD, _root, data);
+    return _delete_node_(nullptr, rbSupport::RIGHT_CHILD, _root, data);
 }
 
 template<typename T>
 int RBTree<T>::_delete_node_(
         RBTree::node_pointer parent,
-        int parent_child_tag,
+        rbSupport parent_child_tag,
         RBTree::node_pointer current_node,
         const_ref_type data) {
     if (current_node == nullptr) {
         return -1;
     } else if (current_node->_data == data) {
         node_pointer tmp_nil = nullptr;
-        auto delete_node_color = current_node->color_;
+        auto delete_node_color = current_node->_color;
         node_pointer &ref_p = (parent ?
-                               (parent_child_tag == LEFT_CHILD ? parent->l_child_ : parent->r_child_)
+                               (parent_child_tag == rbSupport::LEFT_CHILD ? parent->_l_child : parent->_r_child)
                                       : _root);
 
         if (current_node->_l_child && current_node->_r_child) {
             auto prev = current_node->_l_child;
             auto curr = prev;
-            for (; curr && curr->r_child_; prev = curr, curr = curr->r_child_);
+            for (; curr && curr->_r_child; prev = curr, curr = curr->_r_child);
             delete_node_color = curr->_color;
             if (curr == prev) {
                 current_node->_data = curr->_data;
@@ -192,7 +189,7 @@ int RBTree<T>::_delete_node_(
 
                 parent = current_node;
                 current_node = current_node->_l_child;
-                parent_child_tag = LEFT_CHILD;
+                parent_child_tag = rbSupport::LEFT_CHILD;
                 delete curr;
             }
         } else if (current_node->_l_child) {
@@ -209,90 +206,96 @@ int RBTree<T>::_delete_node_(
             current_node = ref_p = nullptr;
         }
 
-        if (delete_node_color == BLACK && parent) {
+        if (delete_node_color == rbSupport::BLACK && parent) {
             if (current_node == nullptr) {
-                tmp_nil = current_node = new node_value_type(NULL_NODE, BLACK);
+                tmp_nil = current_node = new rbTreeNode<T>(0, rbSupport::BLACK);
                 current_node->_parent = parent;
-                parent_child_tag == LEFT_CHILD ? parent->_l_child = current_node : parent->_r_child = current_node;
+                parent_child_tag == rbSupport::LEFT_CHILD ? parent->_l_child = current_node
+                                                          : parent->_r_child = current_node;
             }
-            //TODO:balance
+
+            _delete_handle_balance_( current_node);
 
             if (tmp_nil) {
                 if (tmp_nil->_parent->_l_child == tmp_nil) {
                     tmp_nil->_parent->_l_child = nullptr;
                 } else {
-                    tmp_nil->_parent->r_child_ = nullptr;
+                    tmp_nil->_parent->_r_child = nullptr;
                 }
                 delete tmp_nil;
             }
         }
         return 0;
     } else if (data < current_node->_data) {
-        return _delete_node_(current_node, LEFT_CHILD, current_node->_l_child, data);
+        return _delete_node_(current_node, rbSupport::LEFT_CHILD, current_node->_l_child, data);
     } else {
-        return _delete_node_(current_node, RIGHT_CHILD, current_node->_r_child, data);
+        return _delete_node_(current_node, rbSupport::RIGHT_CHILD, current_node->_r_child, data);
     }
 }
 
 template<typename T>
-void RBTree<T>::_delete_handle_balance_(RBTree::node_pointer current) {
-
-}
-
-
-void RBTree::deleteFix(node *_node) {
-    while (_node != _root && _node->color == BLACK) {
-        if (_node == _node->parent->left) {
-            node *tmp = _node->parent->right; //брат
-            if (tmp->color == RED) { //если брат красный
-                tmp->color = BLACK;
-                _node->parent->color = RED;
-                _turn_left_(_node->parent);
-                tmp = _node->parent->right; //получаем черного брата
+void RBTree<T>::_delete_handle_balance_(RBTree::node_pointer current_node) {
+    for (; (current_node == nullptr || current_node->_color == rbSupport::BLACK) && current_node != _root;) {
+        if (current_node == current_node->_parent->_l_child) {
+            auto tmp = current_node->_parent->_r_child;
+            if (tmp && tmp->_color == rbSupport::RED) {
+                tmp->_color = rbSupport::BLACK;
+                current_node->_parent->_color = rbSupport::RED;
+                _turn_left_(current_node->_parent);
+                tmp = current_node->_parent->_r_child;
             }
-            if (tmp->left->color == BLACK && tmp->right->color == BLACK) { //удаляемое значение черное
-                tmp->color = RED;   //красим брата в красный              //и брат черный
-                _node = _node->parent; //красим отца в черный ниже
-            } else { //один из детей не черный
-                if (tmp->right->color == BLACK) { //у брата правый ребенок черный
-                    tmp->left->color = BLACK;
-                    tmp->color = RED;
+
+            if ((tmp->_l_child == nullptr || tmp->_l_child->_color == rbSupport::BLACK)
+                && (tmp->_r_child == nullptr || tmp->_r_child->_color == rbSupport::BLACK)) {
+                tmp->_color = rbSupport::RED;
+                auto tmp_curr = current_node;
+                current_node = current_node->_parent;
+                tmp_curr->_parent = current_node->_parent;
+            } else {
+                if (tmp->_r_child == nullptr || tmp->_r_child->_color == rbSupport::BLACK) {
+                    tmp->_l_child ? tmp->_l_child->_color = rbSupport::BLACK : rbSupport::RED;
+                    tmp->_color = rbSupport::RED;
                     _turn_right_(tmp);
-                    tmp = _node->parent->right; //рассматриваем брата
-                }//у брата правый ребенок красный
-                tmp->color = _node->parent->color; //перекрашиваем брата в цвет отца
-                _node->parent->color = BLACK; //перекрашмваем отца в черный
-                tmp->right->color = BLACK; //перекоашиваем ребенка отца в черный
-                _turn_left_(_node->parent);
-                _node = _root;
+                    tmp = current_node->_parent->_r_child;
+                }
+
+                tmp->_color = current_node->_parent->_color;
+                current_node->_parent->_color = rbSupport::BLACK;
+                tmp->_r_child->_color = rbSupport::BLACK;
+                _turn_left_(current_node->_parent);
+                current_node = _root;
             }
         } else {
-            node *tmp = _node->parent->left;
-            if (tmp->color == RED) {
-                tmp->color = BLACK;
-                _node->parent->color = RED;
-                _turn_right_(_node->parent);
-                tmp = _node->parent->left;
+            auto tmp = current_node->_parent->_l_child;
+            if (tmp && tmp->_color == rbSupport::RED) {
+                tmp->_color = rbSupport::BLACK;
+                current_node->_parent->_color = rbSupport::RED;
+                _turn_right_(current_node->_parent);
+                tmp = current_node->_parent->_r_child;
             }
-            if (tmp->right->color == BLACK && tmp->left->color == BLACK) {
-                tmp->color = RED;
-                _node = _node->parent;
+            if ((tmp->_l_child == nullptr || tmp->_l_child->_color == rbSupport::BLACK)
+                && (tmp->_r_child == nullptr || tmp->_r_child->_color == rbSupport::BLACK)) {
+                tmp->_color = rbSupport::RED;
+                auto tmp_curr = current_node;
+                current_node = current_node->_parent;
+                tmp_curr->_parent = current_node->_parent;
             } else {
-                if (tmp->left->color == BLACK) {
-                    tmp->right->color = BLACK;
-                    tmp->color = RED;
+                if (tmp->_l_child == nullptr || tmp->_l_child->_color == rbSupport::BLACK) {
+                    tmp->_r_child ? tmp->_r_child->_color = rbSupport::BLACK : rbSupport::RED;
+                    tmp->_color = rbSupport::RED;
                     _turn_left_(tmp);
-                    tmp = _node->parent->left;
+                    tmp = current_node->_parent->_l_child;
                 }
-                tmp->color = _node->parent->color;
-                _node->parent->color = BLACK;
-                tmp->left->color = BLACK;
-                _turn_right_(_node->parent);
-                _node = _root;
+
+                tmp->_color = current_node->_parent->_color;
+                current_node->_parent->_color = rbSupport::BLACK;
+                tmp->_l_child->_color = rbSupport::BLACK;
+                _turn_right_(current_node->_parent);
+                current_node = _root;
             }
         }
     }
-    _node->color = BLACK;
+    current_node->_color = rbSupport::BLACK;
 }
 
 template<typename T>
