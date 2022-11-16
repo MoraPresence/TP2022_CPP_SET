@@ -37,6 +37,8 @@ public:
 
     int insert(const_ref_type data);
 
+    int delete_node(const_ref_type data);
+
     void show(struct node **_node, int count);
 
     void searchUnit(int data, struct node *_node);
@@ -52,16 +54,30 @@ public:
 
 private:
 
-    int insertFix(node_pointer gParent, int gParent_child_tag, node_pointer parent, const_ref_type data);
+    int _insert_(node_pointer parent, int parent_child_tag, node_pointer current, const_ref_type data);
 
-    void turnRight(node *x);
+    int _delete_node_(node_pointer parent, int parent_child_tag, node_pointer current_node, const_ref_type data);
 
-    void turnLeft(node *x);
+    void _insert_handle_balance_(node_pointer current);
+
+    void _delete_handle_balance_(node_pointer current);
+
+    node_pointer _turn_right_(node_pointer current);
+
+    node_pointer _turn_left_(node_pointer current);
+
 
     void deleteFix(node *x);
 
     node_pointer _root;
 };
+
+template<typename T>
+RBTree<T>::~RBTree() {
+    while (_root != NIL) {
+        deleteUnit(_root);
+    }
+}
 
 template<typename T>
 int RBTree<T>::insert(const_ref_type data) {
@@ -70,177 +86,159 @@ int RBTree<T>::insert(const_ref_type data) {
         return 0;
     }
 
-    return insertFix(nullptr, RIGHT_CHILD, _root, data);
+    return _insert_(nullptr, RIGHT_CHILD, _root, data);
 }
 
 template<typename T>
-int RBTree<T>::insertFix(
-        RBTree::node_pointer gParent,
-        int gParent_child_tag,
+int RBTree<T>::_insert_(
         RBTree::node_pointer parent,
+        int parent_child_tag,
+        RBTree::node_pointer current,
         const_ref_type data) {
-    if(parent == nullptr){
-        parent = new node_value_type(data, RED);
-        gParent_child_tag == LEFT_CHILD ? gParent->_l_child = parent : gParent->_r_child = parent;
-        parent->_parent = gParent;
-        if (gParent->_color == RED){
-            //TODO:BALANCE
+    if (current == nullptr) {
+        current = new node_value_type(data, RED);
+        parent_child_tag == LEFT_CHILD ? parent->_l_child = current : parent->_r_child = current;
+        current->_parent = parent;
+        if (parent->_color == RED) {
+            _insert_handle_balance_(current);
         }
         return 0;
-    }else if(parent->_data == data){
+    } else if (current->_data == data) {
         //TODO:add copy or not?
-    }else if(parent->_data > data){
-        return insertFix(parent, LEFT_CHILD, parent->_l_child, data);
-    }else{
-        return insertFix(parent, RIGHT_CHILD, parent->_r_child, data);
-    }
-    return 0;
-}
-
-node *RBTree::Insert(int data) {
-    node *current, *parent, *x;
-    current = _root;
-    parent = nullptr;
-    while (current != NIL) {
-        if (data == current->data) return current;
-        parent = current;
-        current = (data < current->data) ? current->left : current->right;
-    }
-
-    x = new struct node;
-    x->data = data;
-    x->left = x->right = NIL;
-    x->parent = parent;
-    x->color = RED;
-
-    if (parent) {
-        if (data < parent->data)
-            parent->left = x;
-        else
-            parent->right = x;
+        return -1;
+    } else if (current->_data > data) {
+        return _insert_(current, LEFT_CHILD, current->_l_child, data);
     } else {
-        _root = x;
+        return _insert_(current, RIGHT_CHILD, current->_r_child, data);
     }
-    insertFix(x);
-    return x;
 }
 
-void RBTree::insertFix(node *x) {
-    while (x != _root && x->parent->color == RED) {
-        if (x->parent == x->parent->parent->left) {
-            node *tmp = x->parent->parent->right; //дядя
-            if (tmp->color == RED) { //если дядя красный
-                x->parent->color = BLACK;
-                x->parent->parent->color = RED;
-                tmp->color = BLACK;
-                x = x->parent->parent;
-            } else {  //если дядя черный
-                if (x == x->parent->right) {
-                    x = x->parent;
-                    turnLeft(x);
+template<typename T>
+void RBTree<T>::_insert_handle_balance_(RBTree::node_pointer current) {
+    for (; current->_parent && current->_parent->_parent && current->_parent->_color == RED;) {
+        auto parent = current->_parent;
+        auto gParent = parent->_parent;
+        auto uncle = (gParent->_l_child == parent ? gParent->_r_child : gParent->_l_child);
+
+        if (gParent->_l_child == parent) {
+            if (uncle && uncle._color == RED) {
+                parent->_color = uncle->_color = BLACK;
+                gParent->_color = RED;
+                current = gParent;
+            } else {
+                if (parent->_r_child == current) {
+                    _turn_left_(parent);
+                    std::swap(current, parent);
                 }
-                x->parent->color = BLACK;
-                x->parent->parent->color = RED;
-                turnRight(x->parent->parent);
+                parent->_color = BLACK;
+                gParent->_color = RED;
+                _turn_right_(gParent);
             }
         } else {
-            node *tmp = x->parent->parent->left;
-            if (tmp->color == RED) { //если дядя красный
-                x->parent->color = BLACK;
-                x->parent->parent->color = RED;
-                tmp->color = BLACK;
-                x = x->parent->parent;
+            if (uncle && uncle._color == RED) {
+                parent->_color = uncle->_color = BLACK;
+                gParent->_color = RED;
+                current = gParent;
             } else {
-                if (x == x->parent->left) {
-                    x = x->parent;
-                    turnRight(x);
+                if (parent->_l_child == current) {
+                    _turn_right_(parent);
+                    std::swap(current, parent);
                 }
-                x->parent->color = BLACK;
-                x->parent->parent->color = RED;
-                turnLeft(x->parent->parent);
+                parent->_color = BLACK;
+                gParent->_color = RED;
+                _turn_left_(gParent);
             }
         }
     }
-    _root->color = BLACK;
+    _root->_color = BLACK;
 }
 
-void RBTree::show(struct node **_node, int count) {
-    if ((*_node) == NIL) {
-        std::cout << "<Is Empty>" << std::endl << std::endl;
-        return;
+template<typename T>
+int RBTree<T>::delete_node(const_ref_type data) {
+    if (_root == nullptr) {
+        return -1;
     }
 
-    if ((*_node)->right != NIL) {
-        show(&(*_node)->right, count + 4);
-    }
-
-    for (int i = 0; i < count; ++i) fputs(" ", stdout);
-
-    if ((*_node)->color == RED)
-        std::cout << "<" << (*_node)->data << ">" << std::endl;
-    else
-        std::cout << (*_node)->data << std::endl;
-
-
-    if ((*_node)->left != NIL) {
-        show(&(*_node)->left, count + 4);
-    }
+    return _delete_node_(nullptr, RIGHT_CHILD, _root, data);
 }
 
-void RBTree::searchUnit(int data, struct node *_node) {
-    if (!_node || _node == NIL) return;
-    if (_node->data == data) {
-        deleteUnit(_node);
-        return;
-    }
-    if (data > _node->data) searchUnit(data, _node->right);
-    else searchUnit(data, _node->left);
-}
+template<typename T>
+int RBTree<T>::_delete_node_(
+        RBTree::node_pointer parent,
+        int parent_child_tag,
+        RBTree::node_pointer current_node,
+        const_ref_type data) {
+    if (current_node == nullptr) {
+        return -1;
+    } else if (current_node->_data == data) {
+        node_pointer tmp_nil = nullptr;
+        auto delete_node_color = current_node->color_;
+        node_pointer &ref_p = (parent ?
+                               (parent_child_tag == LEFT_CHILD ? parent->l_child_ : parent->r_child_)
+                                      : _root);
 
-void RBTree::deleteUnit(struct node *_node) {
-    struct node *p = NIL;
-    if (!_node || _node == NIL) return;
-    //* нет детей *//
-    if (_node->left == NIL && _node->right == NIL) {
-        if (_node == _root) _root = NIL;
-        if (_node->color == BLACK)
-            deleteFix(_node);
-        if (_node->parent->left == _node) {
-            _node->parent->left = NIL;
+        if (current_node->_l_child && current_node->_r_child) {
+            auto prev = current_node->_l_child;
+            auto curr = prev;
+            for (; curr && curr->r_child_; prev = curr, curr = curr->r_child_);
+            delete_node_color = curr->_color;
+            if (curr == prev) {
+                current_node->_data = curr->_data;
+                current_node->_l_child = curr->_l_child;
+
+                if (curr->_l_child) {
+                    curr->_l_child->_parent = current_node;
+                }
+
+                parent = current_node;
+                current_node = current_node->_l_child;
+                parent_child_tag = LEFT_CHILD;
+                delete curr;
+            }
+        } else if (current_node->_l_child) {
+            ref_p = current_node->_l_child;
+            current_node->_l_child->_parent = parent;
+            delete current_node;
+            current_node = ref_p;
+        } else if (current_node->_r_child) {
+            ref_p = current_node->_r_child;
+            current_node->_r_child->_parent = parent;
+            delete current_node;
+            current_node = ref_p;
         } else {
-            _node->parent->right = NIL;
+            current_node = ref_p = nullptr;
         }
-        delete _node;
-        return;
-    }                           //* есть оба ребенка *//
-    else if (_node->left != NIL && _node->right != NIL) {
-        p = _node->left;
-        while (p->right != NIL) p = p->right;
-        _node->data = p->data;
-        deleteUnit(p);
-        return;
-    } else {
-        if (_node->left == NIL) {
-            p = _node->right;
-        } else if (_node->right == NIL) {
-            p = _node->left;
-        }
-        if (_node->parent) {
-            if (_node->parent->left == _node) {
-                _node->parent->left = p;
-            } else {
-                _node->parent->right = p;
+
+        if (delete_node_color == BLACK && parent) {
+            if (current_node == nullptr) {
+                tmp_nil = current_node = new node_value_type(NULL_NODE, BLACK);
+                current_node->_parent = parent;
+                parent_child_tag == LEFT_CHILD ? parent->_l_child = current_node : parent->_r_child = current_node;
             }
-            p->parent = _node->parent;
-            p->color = BLACK;//чтобы избежать два красных
+            //TODO:balance
 
-        } else
-            _root = p;
-        free(_node);
+            if (tmp_nil) {
+                if (tmp_nil->_parent->_l_child == tmp_nil) {
+                    tmp_nil->_parent->_l_child = nullptr;
+                } else {
+                    tmp_nil->_parent->r_child_ = nullptr;
+                }
+                delete tmp_nil;
+            }
+        }
+        return 0;
+    } else if (data < current_node->_data) {
+        return _delete_node_(current_node, LEFT_CHILD, current_node->_l_child, data);
+    } else {
+        return _delete_node_(current_node, RIGHT_CHILD, current_node->_r_child, data);
     }
+}
 
+template<typename T>
+void RBTree<T>::_delete_handle_balance_(RBTree::node_pointer current) {
 
 }
+
 
 void RBTree::deleteFix(node *_node) {
     while (_node != _root && _node->color == BLACK) {
@@ -249,7 +247,7 @@ void RBTree::deleteFix(node *_node) {
             if (tmp->color == RED) { //если брат красный
                 tmp->color = BLACK;
                 _node->parent->color = RED;
-                turnLeft(_node->parent);
+                _turn_left_(_node->parent);
                 tmp = _node->parent->right; //получаем черного брата
             }
             if (tmp->left->color == BLACK && tmp->right->color == BLACK) { //удаляемое значение черное
@@ -259,13 +257,13 @@ void RBTree::deleteFix(node *_node) {
                 if (tmp->right->color == BLACK) { //у брата правый ребенок черный
                     tmp->left->color = BLACK;
                     tmp->color = RED;
-                    turnRight(tmp);
+                    _turn_right_(tmp);
                     tmp = _node->parent->right; //рассматриваем брата
                 }//у брата правый ребенок красный
                 tmp->color = _node->parent->color; //перекрашиваем брата в цвет отца
                 _node->parent->color = BLACK; //перекрашмваем отца в черный
                 tmp->right->color = BLACK; //перекоашиваем ребенка отца в черный
-                turnLeft(_node->parent);
+                _turn_left_(_node->parent);
                 _node = _root;
             }
         } else {
@@ -273,7 +271,7 @@ void RBTree::deleteFix(node *_node) {
             if (tmp->color == RED) {
                 tmp->color = BLACK;
                 _node->parent->color = RED;
-                turnRight(_node->parent);
+                _turn_right_(_node->parent);
                 tmp = _node->parent->left;
             }
             if (tmp->right->color == BLACK && tmp->left->color == BLACK) {
@@ -283,13 +281,13 @@ void RBTree::deleteFix(node *_node) {
                 if (tmp->left->color == BLACK) {
                     tmp->right->color = BLACK;
                     tmp->color = RED;
-                    turnLeft(tmp);
+                    _turn_left_(tmp);
                     tmp = _node->parent->left;
                 }
                 tmp->color = _node->parent->color;
                 _node->parent->color = BLACK;
                 tmp->left->color = BLACK;
-                turnRight(_node->parent);
+                _turn_right_(_node->parent);
                 _node = _root;
             }
         }
@@ -297,77 +295,120 @@ void RBTree::deleteFix(node *_node) {
     _node->color = BLACK;
 }
 
-int RBTree::inorder(struct node *_node) {
-    struct node *tmp;
-    int result = 0;
-    if (!_node || _node == NIL) return -1;
-    for (tmp = _node; tmp->parent != nullptr || tmp == _root; tmp = tmp->right) {
-        inorder(tmp->left);
-        result = printf("%d -> ", tmp->data);
+template<typename T>
+typename RBTree<T>::node_pointer RBTree<T>::_turn_right_(RBTree::node_pointer current) {
+    auto left_child = current->_l_child;
+    current->_l_child = left_child->_r_child;
+
+    if (left_child->_r_child) {
+        left_child->_r_child->_parent = current;
     }
-    return result;
-}
 
-int RBTree::preorder(struct node *_node) {
-    struct node *tmp;
-    int result = 0;
-    if (!_node || _node == NIL) return printf("Is empty");
-    for (tmp = _node; tmp->parent != nullptr || tmp == _root; tmp = tmp->right) {
-        printf("%d -> ", tmp->data);
-        result = preorder(tmp->left);
-    }
-    return result;
-}
-
-int RBTree::postorder(struct node *_node) {
-    if (_node == NIL) return printf("Is empty");
-    postorder(_node->left);
-    postorder(_node->right);
-    return printf("%d -> ", _node->data);
-}
-
-void RBTree::turnRight(node *x) {
-    node *y = x->left;
-    x->left = y->right;
-    if (y->right != NIL) y->right->parent = x;
-
-    if (y != NIL) y->parent = x->parent;
-    if (x->parent) {
-        if (x == x->parent->right)
-            x->parent->right = y;
-        else
-            x->parent->left = y;
+    left_child->_parent = current->_parent;
+    if (current->_parent == nullptr) {
+        _root = left_child;
+    } else if (current->_parent->_l_child == current) {
+        current->_parent->_l_child = left_child;
     } else {
-        _root = y;
+        current->_parent->_r_child = left_child;
     }
-    y->right = x;
-    if (x != NIL) x->parent = y;
+
+    left_child->_r_child = current;
+    current->_parent = left_child;
+
+    return left_child;
 }
 
-void RBTree::turnLeft(node *x) {
-    node *y = x->right;
-    x->right = y->left;
-    if (y->left != NIL) y->left->parent = x;
+template<typename T>
+typename RBTree<T>::node_pointer RBTree<T>::_turn_left_(RBTree::node_pointer current) {
+    auto right_child = current->_r_child;
+    current->_r_child = right_child->_l_child;
 
-    if (y != NIL) y->parent = x->parent;
-    if (x->parent) {
-        if (x == x->parent->left)
-            x->parent->left = y;
-        else
-            x->parent->right = y;
+    if (right_child->_l_child) {
+        right_child->_l_child->_parent = current;
+    }
+
+    right_child->_parent = current->_parent;
+    if (current->_parent == nullptr) {
+        _root = right_child;
+    } else if (current->_parent->_l_child == current) {
+        current->_parent->_l_child = right_child;
     } else {
-        _root = y;
+        current->_parent->_r_child = right_child;
     }
 
-    y->left = x;
-    if (x != NIL) x->parent = y;
+    right_child->_l_child = current;
+    current->_parent = right_child;
+
+    return right_child;
 }
 
-RBTree::~RBTree() {
-    while (_root != NIL) {
-        deleteUnit(_root);
-    }
-}
+
+
+
+
+
+//void RBTree::searchUnit(int data, struct node *_node) {
+//    if (!_node || _node == NIL) return;
+//    if (_node->data == data) {
+//        deleteUnit(_node);
+//        return;
+//    }
+//    if (data > _node->data) searchUnit(data, _node->right);
+//    else searchUnit(data, _node->left);
+//}
+
+//int RBTree::inorder(struct node *_node) {
+//    struct node *tmp;
+//    int result = 0;
+//    if (!_node || _node == NIL) return -1;
+//    for (tmp = _node; tmp->parent != nullptr || tmp == _root; tmp = tmp->right) {
+//        inorder(tmp->left);
+//        result = printf("%d -> ", tmp->data);
+//    }
+//    return result;
+//}
+//
+//int RBTree::preorder(struct node *_node) {
+//    struct node *tmp;
+//    int result = 0;
+//    if (!_node || _node == NIL) return printf("Is empty");
+//    for (tmp = _node; tmp->parent != nullptr || tmp == _root; tmp = tmp->right) {
+//        printf("%d -> ", tmp->data);
+//        result = preorder(tmp->left);
+//    }
+//    return result;
+//}
+//
+//int RBTree::postorder(struct node *_node) {
+//    if (_node == NIL) return printf("Is empty");
+//    postorder(_node->left);
+//    postorder(_node->right);
+//    return printf("%d -> ", _node->data);
+//}
+//
+//void RBTree::show(struct node **_node, int count) {
+//    if ((*_node) == NIL) {
+//        std::cout << "<Is Empty>" << std::endl << std::endl;
+//        return;
+//    }
+//
+//    if ((*_node)->right != NIL) {
+//        show(&(*_node)->right, count + 4);
+//    }
+//
+//    for (int i = 0; i < count; ++i) fputs(" ", stdout);
+//
+//    if ((*_node)->color == RED)
+//        std::cout << "<" << (*_node)->data << ">" << std::endl;
+//    else
+//        std::cout << (*_node)->data << std::endl;
+//
+//
+//    if ((*_node)->left != NIL) {
+//        show(&(*_node)->left, count + 4);
+//    }
+//}
 
 
 #endif //TP2022_CPP_SET_RBTREE_H
