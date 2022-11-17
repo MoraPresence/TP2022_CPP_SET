@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(SET CXX)
+project(RBTree CXX)
 
 if (BUILD_FOR_TEST)
     set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fprofile-arcs -ftest-coverage -fPIC -O0")

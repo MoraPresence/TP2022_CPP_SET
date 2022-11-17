@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include "RBTree.h"
+#include "Iterator.h"
 
 class RBTree_elementsTests : public testing::Test {
 protected:
@@ -14,8 +15,10 @@ TEST_F(RBTree_elementsTests, access_by_index_matrix) {
     RBTree<int> tree;
 
     tree.insert(12);
+    auto a = 12;
+    tree.find(a);
 
-    tree.delete_node(12);
+    tree.erase(12);
 
     EXPECT_TRUE(true);
 }

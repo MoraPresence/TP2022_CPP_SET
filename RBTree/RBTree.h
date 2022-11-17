@@ -1,37 +1,19 @@
+// Copyright 2022 mora
+
 #ifndef TP2022_CPP_SET_RBTREE_H
 #define TP2022_CPP_SET_RBTREE_H
 
-enum class rbSupport {
-    RED = 0,
-    BLACK = 1,
-    NULL_NODE = -100,
-    LEFT_CHILD = 0,
-    RIGHT_CHILD = 1
-};
-
-
-template<typename T>
-class rbTreeNode {
-public:
-    rbTreeNode(const T &data, rbSupport color)
-            : _data(data), _color(color), _parent(nullptr), _l_child(nullptr), _r_child(nullptr) {}
-
-public:
-    T _data;
-    rbSupport _color;
-    rbTreeNode *_parent;
-    rbTreeNode *_l_child;
-    rbTreeNode *_r_child;
-};
+#include "RBNode.h"
+#include "Iterator.h"
 
 template<typename T>
 class RBTree {
 public:
-    typedef T value_type;
-    typedef const value_type &const_ref_type;
-    typedef rbTreeNode<T> node_value_type;
-    typedef rbTreeNode<T> *node_pointer;
-    typedef const node_pointer const_node_pointer;
+    using value_type = T;
+    using const_ref_type = const value_type &;
+    using node_value_type = rbTreeNode<T>;
+    using node_pointer = rbTreeNode<T> *;
+    using const_node_pointer = const node_pointer;
 
 public:
     RBTree() : _root(nullptr) {}
@@ -40,7 +22,15 @@ public:
 
     int insert(const_ref_type data);
 
-    int delete_node(const_ref_type data);
+    int erase(const_ref_type data);
+
+    iterator<T> begin() const;
+
+    iterator<T> end() const;
+
+    iterator<T> find(const_ref_type) const;
+
+    iterator<T> lower_bound(const_ref_type) const;
 
     void show(struct node **_node, int count);
 
@@ -56,11 +46,11 @@ private:
 
     int _insert_(node_pointer parent, rbSupport parent_child_tag, node_pointer current, const_ref_type data);
 
-    int _delete_node_(node_pointer parent, rbSupport parent_child_tag, node_pointer current_node, const_ref_type data);
+    int _erase_(node_pointer parent, rbSupport parent_child_tag, node_pointer current_node, const_ref_type data);
 
     void _insert_handle_balance_(node_pointer current);
 
-    void _delete_handle_balance_(node_pointer current);
+    void _erase_handle_balance_(node_pointer current);
 
     node_pointer _turn_right_(node_pointer current);
 
@@ -72,7 +62,7 @@ private:
 template<typename T>
 RBTree<T>::~RBTree() {
 //    while (_root != nullptr) {
-//        delete_node(_root);
+//        erase(_root);
 //    }
 }
 
@@ -101,7 +91,6 @@ int RBTree<T>::_insert_(
         }
         return 0;
     } else if (current->_data == data) {
-        //TODO:add copy or not?
         return -1;
     } else if (current->_data > data) {
         return _insert_(current, rbSupport::LEFT_CHILD, current->_l_child, data);
@@ -151,16 +140,16 @@ void RBTree<T>::_insert_handle_balance_(RBTree::node_pointer current) {
 }
 
 template<typename T>
-int RBTree<T>::delete_node(const_ref_type data) {
+int RBTree<T>::erase(const_ref_type data) {
     if (_root == nullptr) {
         return -1;
     }
 
-    return _delete_node_(nullptr, rbSupport::RIGHT_CHILD, _root, data);
+    return _erase_(nullptr, rbSupport::RIGHT_CHILD, _root, data);
 }
 
 template<typename T>
-int RBTree<T>::_delete_node_(
+int RBTree<T>::_erase_(
         RBTree::node_pointer parent,
         rbSupport parent_child_tag,
         RBTree::node_pointer current_node,
@@ -214,7 +203,7 @@ int RBTree<T>::_delete_node_(
                                                           : parent->_r_child = current_node;
             }
 
-            _delete_handle_balance_( current_node);
+            _erase_handle_balance_(current_node);
 
             if (tmp_nil) {
                 if (tmp_nil->_parent->_l_child == tmp_nil) {
@@ -227,14 +216,14 @@ int RBTree<T>::_delete_node_(
         }
         return 0;
     } else if (data < current_node->_data) {
-        return _delete_node_(current_node, rbSupport::LEFT_CHILD, current_node->_l_child, data);
+        return _erase_(current_node, rbSupport::LEFT_CHILD, current_node->_l_child, data);
     } else {
-        return _delete_node_(current_node, rbSupport::RIGHT_CHILD, current_node->_r_child, data);
+        return _erase_(current_node, rbSupport::RIGHT_CHILD, current_node->_r_child, data);
     }
 }
 
 template<typename T>
-void RBTree<T>::_delete_handle_balance_(RBTree::node_pointer current_node) {
+void RBTree<T>::_erase_handle_balance_(RBTree::node_pointer current_node) {
     for (; (current_node == nullptr || current_node->_color == rbSupport::BLACK) && current_node != _root;) {
         if (current_node == current_node->_parent->_l_child) {
             auto tmp = current_node->_parent->_r_child;
@@ -346,12 +335,50 @@ typename RBTree<T>::node_pointer RBTree<T>::_turn_left_(RBTree::node_pointer cur
     return right_child;
 }
 
+template<typename T>
+iterator<T> RBTree<T>::begin() const {
+    node_pointer node = _root;
+    for (; node->_l_child;) {
+        node = node->_l_child;
+    }
+    return iterator(node);
+}
+
+template<typename T>
+iterator<T> RBTree<T>::end() const { return iterator(_root); }
+
+template<typename T>
+iterator<T> RBTree<T>::find(const_ref_type target) const {
+    auto node = _root->_l_child;
+    for (; node;) {
+        if (node->_data < target) {
+            node = node->_r_child;
+        } else if (node->_data > target) {
+            node = node->_l_child;
+        } else {
+            return iterator(node);
+        }
+    }
+    return iterator(node);
+}
+
+template<typename T>
+iterator<T> RBTree<T>::lower_bound(const_ref_type target) const {
+    auto curr = _root->_l_child;
+    auto prev = _root;
+    for (; curr;) {
+        if (curr->_data < target) {
+            curr = curr->_r_child;
+        } else {
+            prev = curr;
+            curr = curr->_l_child;
+        }
+    }
+    return iterator(prev);
+}
 
 
-
-
-
-//void RBTree::searchUnit(int data, struct node *_node) {
+//void RBTree::searchUnit(int data, struct _node *_node) {
 //    if (!_node || _node == NIL) return;
 //    if (_node->data == data) {
 //        deleteUnit(_node);
@@ -361,8 +388,8 @@ typename RBTree<T>::node_pointer RBTree<T>::_turn_left_(RBTree::node_pointer cur
 //    else searchUnit(data, _node->left);
 //}
 
-//int RBTree::inorder(struct node *_node) {
-//    struct node *tmp;
+//int RBTree::inorder(struct _node *_node) {
+//    struct _node *tmp;
 //    int result = 0;
 //    if (!_node || _node == NIL) return -1;
 //    for (tmp = _node; tmp->parent != nullptr || tmp == _root; tmp = tmp->right) {
@@ -372,8 +399,8 @@ typename RBTree<T>::node_pointer RBTree<T>::_turn_left_(RBTree::node_pointer cur
 //    return result;
 //}
 //
-//int RBTree::preorder(struct node *_node) {
-//    struct node *tmp;
+//int RBTree::preorder(struct _node *_node) {
+//    struct _node *tmp;
 //    int result = 0;
 //    if (!_node || _node == NIL) return printf("Is empty");
 //    for (tmp = _node; tmp->parent != nullptr || tmp == _root; tmp = tmp->right) {
@@ -383,14 +410,14 @@ typename RBTree<T>::node_pointer RBTree<T>::_turn_left_(RBTree::node_pointer cur
 //    return result;
 //}
 //
-//int RBTree::postorder(struct node *_node) {
+//int RBTree::postorder(struct _node *_node) {
 //    if (_node == NIL) return printf("Is empty");
 //    postorder(_node->left);
 //    postorder(_node->right);
 //    return printf("%d -> ", _node->data);
 //}
 //
-//void RBTree::show(struct node **_node, int count) {
+//void RBTree::show(struct _node **_node, int count) {
 //    if ((*_node) == NIL) {
 //        std::cout << "<Is Empty>" << std::endl << std::endl;
 //        return;
