@@ -7,6 +7,6 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(RBTree)
 
-add_subdirectory(Tests)
-
 add_subdirectory(Set)
+
+add_subdirectory(Tests)

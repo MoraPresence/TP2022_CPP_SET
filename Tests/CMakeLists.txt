@@ -17,5 +17,8 @@ add_executable(${PROJECT_NAME} tests.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC ${RBTREE_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} ${RBTREE_LIBRARIES} GTest::gtest_main)
 
+target_include_directories(${PROJECT_NAME} PUBLIC ${SET_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${SET_LIBRARIES})
+
 enable_testing()
 add_test(NAME RBTREE_tests COMMAND RBTREE_tests)

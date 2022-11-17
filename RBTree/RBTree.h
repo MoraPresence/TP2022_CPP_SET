@@ -3,50 +3,148 @@
 #ifndef TP2022_CPP_SET_RBTREE_H
 #define TP2022_CPP_SET_RBTREE_H
 
-#include "RBNode.h"
-#include "Iterator.h"
+#include <iostream>
 
-template<typename T>
+enum class rbSupport {
+    RED = 0,
+    BLACK = 1,
+    NULL_NODE = -100,
+    LEFT_CHILD = 0,
+    RIGHT_CHILD = 1
+};
+
+template<
+        typename Key,
+        class Compare = std::less<Key>,
+        class Allocator = std::allocator<Key>
+>
 class RBTree {
 public:
-    using value_type = T;
+    class rbTreeNode {
+    public:
+        rbTreeNode() = default;
+
+        rbTreeNode(Key data, rbSupport color, rbTreeNode *parent, rbTreeNode *l_child, rbTreeNode *r_child);
+
+        rbTreeNode(const Key &data, rbSupport color)
+                : _data(data), _color(color), _parent(nullptr), _l_child(nullptr), _r_child(nullptr) {};
+
+        rbTreeNode(const rbTreeNode &);
+
+        rbTreeNode(rbTreeNode &&) noexcept;
+
+        rbTreeNode &operator=(const rbTreeNode &);
+
+        rbTreeNode &operator=(rbTreeNode &&) noexcept;
+
+        ~rbTreeNode();
+
+    public:
+        Compare __cmp = Compare();
+
+        Key _data;
+        rbSupport _color;
+        rbTreeNode *_parent;
+        rbTreeNode *_l_child;
+        rbTreeNode *_r_child;
+    };
+
+public:
+    using value_type = Key;
     using const_ref_type = const value_type &;
-    using node_value_type = rbTreeNode<T>;
-    using node_pointer = rbTreeNode<T> *;
+    using node_value_type = rbTreeNode;
+    using node_pointer = rbTreeNode *;
     using const_node_pointer = const node_pointer;
 
 public:
-    RBTree() : _root(nullptr) {}
+
+    class iterator {
+    public:
+        iterator() = default;
+
+        explicit iterator(node_pointer node) { _node = node; }
+
+        iterator(const iterator &) = default;
+
+        iterator(iterator &&) noexcept = default;
+
+        iterator &operator=(const iterator &) = default;
+
+        iterator &operator=(iterator &&) noexcept = default;
+
+        bool operator==(const iterator &it) const { return it._node == _node; }
+
+        bool operator==(const iterator &&it) const { return it._node == _node; }
+
+        bool operator!=(const iterator &it) const { return it._node != _node; }
+
+        bool operator!=(const iterator &&it) const { return it._node != _node; }
+
+        value_type operator*() const { return _node->_data; }
+
+        value_type *operator->() const { return &_node->_data; }
+
+        iterator &operator++();
+
+        iterator operator++(int) &;
+
+        iterator &operator--();
+
+        iterator operator--(int) &;
+
+    private:
+        rbSupport _get_parent_direction_(node_pointer child);
+
+        node_pointer _get_leftest_node_(node_pointer node);
+
+        node_pointer _get_rightest_node_(node_pointer node);
+
+        node_pointer _get_next_node_(node_pointer node);
+
+        node_pointer _get_prev_node_(node_pointer node);
+
+        node_pointer _node = nullptr;
+    };
+
+public:
+    RBTree() : _size(0), _root(nullptr) {
+    }
+
+    RBTree(const RBTree &);
+
+    RBTree(RBTree &&) noexcept;
+
+    RBTree(const RBTree *);
+
+    RBTree &operator=(const RBTree &);
+
+    RBTree &operator=(RBTree &&) noexcept;
 
     ~RBTree();
 
-    int insert(const_ref_type data);
+    void insert(const_ref_type data);
 
-    int erase(const_ref_type data);
+    void erase(const_ref_type data);
 
-    iterator<T> begin() const;
+    iterator begin() const;
 
-    iterator<T> end() const;
+    iterator end() const;
 
-    iterator<T> find(const_ref_type) const;
+    iterator find(const_ref_type) const;
 
-    iterator<T> lower_bound(const_ref_type) const;
+    iterator lower_bound(const_ref_type) const;
 
-    void show(struct node **_node, int count);
+    size_t size();
 
-    void searchUnit(int data, struct node *_node);
+    bool empty();
 
-    int inorder(struct node *_node);
-
-    int preorder(struct node *_node);
-
-    int postorder(struct node *_node);
+    void clear(node_pointer);
 
 private:
 
-    int _insert_(node_pointer parent, rbSupport parent_child_tag, node_pointer current, const_ref_type data);
+    void _insert_(node_pointer parent, rbSupport parent_child_tag, node_pointer current, const_ref_type data);
 
-    int _erase_(node_pointer parent, rbSupport parent_child_tag, node_pointer current_node, const_ref_type data);
+    void _erase_(node_pointer parent, rbSupport parent_child_tag, node_pointer current_node, const_ref_type data);
 
     void _insert_handle_balance_(node_pointer current);
 
@@ -56,28 +154,71 @@ private:
 
     node_pointer _turn_left_(node_pointer current);
 
+    Compare __cmp = Compare();
+
+    size_t _size;
     node_pointer _root;
 };
 
-template<typename T>
-RBTree<T>::~RBTree() {
-//    while (_root != nullptr) {
-//        erase(_root);
-//    }
+template<class Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator>::RBTree(const RBTree &other) : RBTree() {
+    for (auto it: other) {
+        insert(it);
+    }
 }
 
-template<typename T>
-int RBTree<T>::insert(const_ref_type data) {
-    if (_root == nullptr) {
-        _root = new rbTreeNode<T>(data, rbSupport::BLACK);
-        return 0;
+template<class Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator>::RBTree(RBTree &&other) noexcept : RBTree(other) {
+    other._size = 0;
+    other = nullptr;
+}
+
+template<class Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator>::RBTree(const RBTree *other) : RBTree(*other) {
+}
+
+template<class Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator> &RBTree<Key, Compare, Allocator>
+::operator=(const RBTree &other) {
+    if (&other == this) {
+        return *this;
     }
 
-    return _insert_(nullptr, rbSupport::RIGHT_CHILD, _root, data);
+    clear(_root);
+    _size = 0;
+
+    for (auto &it: other) {
+        insert(it);
+    }
+    return *this;
 }
 
-template<typename T>
-int RBTree<T>::_insert_(
+template<typename Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator> &RBTree<Key, Compare, Allocator>
+::operator=(RBTree &&other) noexcept {
+    *this = other;
+
+    other._root = nullptr;
+    other._size = 0;
+}
+
+template<class Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator>::~RBTree() {
+    clear(_root);
+}
+
+template<class Key, class Compare, class Allocator>
+void RBTree<Key, Compare, Allocator>::insert(const_ref_type data) {
+    if (_root == nullptr) {
+        _root = new node_value_type(data, rbSupport::BLACK);
+        return;
+    }
+
+    return _insert_(nullptr, rbSupport::LEFT_CHILD, _root, data);
+}
+
+template<class Key, class Compare, class Allocator>
+void RBTree<Key, Compare, Allocator>::_insert_(
         RBTree::node_pointer parent,
         rbSupport parent_child_tag,
         RBTree::node_pointer current,
@@ -89,9 +230,9 @@ int RBTree<T>::_insert_(
         if (parent->_color == rbSupport::RED) {
             _insert_handle_balance_(current);
         }
-        return 0;
+        return;
     } else if (current->_data == data) {
-        return -1;
+        return;
     } else if (current->_data > data) {
         return _insert_(current, rbSupport::LEFT_CHILD, current->_l_child, data);
     } else {
@@ -99,8 +240,8 @@ int RBTree<T>::_insert_(
     }
 }
 
-template<typename T>
-void RBTree<T>::_insert_handle_balance_(RBTree::node_pointer current) {
+template<class Key, class Compare, class Allocator>
+void RBTree<Key, Compare, Allocator>::_insert_handle_balance_(node_pointer current) {
     for (; current->_parent && current->_parent->_parent && current->_parent->_color == rbSupport::RED;) {
         auto parent = current->_parent;
         auto gParent = parent->_parent;
@@ -139,23 +280,23 @@ void RBTree<T>::_insert_handle_balance_(RBTree::node_pointer current) {
     _root->_color = rbSupport::BLACK;
 }
 
-template<typename T>
-int RBTree<T>::erase(const_ref_type data) {
-    if (_root == nullptr) {
-        return -1;
+template<class Key, class Compare, class Allocator>
+void RBTree<Key, Compare, Allocator>::erase(const_ref_type data) {
+    if (_root) {
+        return;
     }
 
-    return _erase_(nullptr, rbSupport::RIGHT_CHILD, _root, data);
+    return _erase_(nullptr, rbSupport::LEFT_CHILD, _root, data);
 }
 
-template<typename T>
-int RBTree<T>::_erase_(
+template<class Key, class Compare, class Allocator>
+void RBTree<Key, Compare, Allocator>::_erase_(
         RBTree::node_pointer parent,
         rbSupport parent_child_tag,
         RBTree::node_pointer current_node,
         const_ref_type data) {
     if (current_node == nullptr) {
-        return -1;
+        return;
     } else if (current_node->_data == data) {
         node_pointer tmp_nil = nullptr;
         auto delete_node_color = current_node->_color;
@@ -197,7 +338,7 @@ int RBTree<T>::_erase_(
 
         if (delete_node_color == rbSupport::BLACK && parent) {
             if (current_node == nullptr) {
-                tmp_nil = current_node = new rbTreeNode<T>(0, rbSupport::BLACK);
+                tmp_nil = current_node = new node_value_type(rbSupport::NULL_NODE, rbSupport::BLACK);
                 current_node->_parent = parent;
                 parent_child_tag == rbSupport::LEFT_CHILD ? parent->_l_child = current_node
                                                           : parent->_r_child = current_node;
@@ -214,7 +355,8 @@ int RBTree<T>::_erase_(
                 delete tmp_nil;
             }
         }
-        return 0;
+        _size--;
+        return;
     } else if (data < current_node->_data) {
         return _erase_(current_node, rbSupport::LEFT_CHILD, current_node->_l_child, data);
     } else {
@@ -222,8 +364,8 @@ int RBTree<T>::_erase_(
     }
 }
 
-template<typename T>
-void RBTree<T>::_erase_handle_balance_(RBTree::node_pointer current_node) {
+template<class Key, class Compare, class Allocator>
+void RBTree<Key, Compare, Allocator>::_erase_handle_balance_(RBTree::node_pointer current_node) {
     for (; (current_node == nullptr || current_node->_color == rbSupport::BLACK) && current_node != _root;) {
         if (current_node == current_node->_parent->_l_child) {
             auto tmp = current_node->_parent->_r_child;
@@ -287,8 +429,9 @@ void RBTree<T>::_erase_handle_balance_(RBTree::node_pointer current_node) {
     current_node->_color = rbSupport::BLACK;
 }
 
-template<typename T>
-typename RBTree<T>::node_pointer RBTree<T>::_turn_right_(RBTree::node_pointer current) {
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::node_pointer
+RBTree<Key, Compare, Allocator>::_turn_right_(RBTree::node_pointer current) {
     auto left_child = current->_l_child;
     current->_l_child = left_child->_r_child;
 
@@ -297,7 +440,7 @@ typename RBTree<T>::node_pointer RBTree<T>::_turn_right_(RBTree::node_pointer cu
     }
 
     left_child->_parent = current->_parent;
-    if (current->_parent == nullptr) {
+    if (!current->_parent) {
         _root = left_child;
     } else if (current->_parent->_l_child == current) {
         current->_parent->_l_child = left_child;
@@ -311,8 +454,9 @@ typename RBTree<T>::node_pointer RBTree<T>::_turn_right_(RBTree::node_pointer cu
     return left_child;
 }
 
-template<typename T>
-typename RBTree<T>::node_pointer RBTree<T>::_turn_left_(RBTree::node_pointer current) {
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::node_pointer
+RBTree<Key, Compare, Allocator>::_turn_left_(RBTree::node_pointer current) {
     auto right_child = current->_r_child;
     current->_r_child = right_child->_l_child;
 
@@ -321,7 +465,7 @@ typename RBTree<T>::node_pointer RBTree<T>::_turn_left_(RBTree::node_pointer cur
     }
 
     right_child->_parent = current->_parent;
-    if (current->_parent == nullptr) {
+    if (!current->_parent) {
         _root = right_child;
     } else if (current->_parent->_l_child == current) {
         current->_parent->_l_child = right_child;
@@ -335,21 +479,23 @@ typename RBTree<T>::node_pointer RBTree<T>::_turn_left_(RBTree::node_pointer cur
     return right_child;
 }
 
-template<typename T>
-iterator<T> RBTree<T>::begin() const {
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::iterator RBTree<Key, Compare, Allocator>::begin() const {
     node_pointer node = _root;
-    for (; node->_l_child;) {
+    for (; node->_l_child != nullptr;) {
         node = node->_l_child;
     }
     return iterator(node);
 }
 
-template<typename T>
-iterator<T> RBTree<T>::end() const { return iterator(_root); }
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::iterator RBTree<Key, Compare, Allocator>::end() const {
+    return iterator(_root);
+}
 
-template<typename T>
-iterator<T> RBTree<T>::find(const_ref_type target) const {
-    auto node = _root->_l_child;
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::iterator RBTree<Key, Compare, Allocator>::find(const_ref_type target) const {
+    auto node = _root;
     for (; node;) {
         if (node->_data < target) {
             node = node->_r_child;
@@ -359,11 +505,12 @@ iterator<T> RBTree<T>::find(const_ref_type target) const {
             return iterator(node);
         }
     }
-    return iterator(node);
+    return end();
 }
 
-template<typename T>
-iterator<T> RBTree<T>::lower_bound(const_ref_type target) const {
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::iterator
+RBTree<Key, Compare, Allocator>::lower_bound(const_ref_type target) const {
     auto curr = _root->_l_child;
     auto prev = _root;
     for (; curr;) {
@@ -374,71 +521,174 @@ iterator<T> RBTree<T>::lower_bound(const_ref_type target) const {
             curr = curr->_l_child;
         }
     }
+
     return iterator(prev);
 }
 
+template<class Key, class Compare, class Allocator>
+size_t RBTree<Key, Compare, Allocator>::size() {
+    return _size;
+}
 
-//void RBTree::searchUnit(int data, struct _node *_node) {
-//    if (!_node || _node == NIL) return;
-//    if (_node->data == data) {
-//        deleteUnit(_node);
-//        return;
-//    }
-//    if (data > _node->data) searchUnit(data, _node->right);
-//    else searchUnit(data, _node->left);
-//}
+template<class Key, class Compare, class Allocator>
+bool RBTree<Key, Compare, Allocator>::empty() {
+    return _size == 0;
+}
 
-//int RBTree::inorder(struct _node *_node) {
-//    struct _node *tmp;
-//    int result = 0;
-//    if (!_node || _node == NIL) return -1;
-//    for (tmp = _node; tmp->parent != nullptr || tmp == _root; tmp = tmp->right) {
-//        inorder(tmp->left);
-//        result = printf("%d -> ", tmp->data);
-//    }
-//    return result;
-//}
-//
-//int RBTree::preorder(struct _node *_node) {
-//    struct _node *tmp;
-//    int result = 0;
-//    if (!_node || _node == NIL) return printf("Is empty");
-//    for (tmp = _node; tmp->parent != nullptr || tmp == _root; tmp = tmp->right) {
-//        printf("%d -> ", tmp->data);
-//        result = preorder(tmp->left);
-//    }
-//    return result;
-//}
-//
-//int RBTree::postorder(struct _node *_node) {
-//    if (_node == NIL) return printf("Is empty");
-//    postorder(_node->left);
-//    postorder(_node->right);
-//    return printf("%d -> ", _node->data);
-//}
-//
-//void RBTree::show(struct _node **_node, int count) {
-//    if ((*_node) == NIL) {
-//        std::cout << "<Is Empty>" << std::endl << std::endl;
-//        return;
-//    }
-//
-//    if ((*_node)->right != NIL) {
-//        show(&(*_node)->right, count + 4);
-//    }
-//
-//    for (int i = 0; i < count; ++i) fputs(" ", stdout);
-//
-//    if ((*_node)->color == RED)
-//        std::cout << "<" << (*_node)->data << ">" << std::endl;
-//    else
-//        std::cout << (*_node)->data << std::endl;
-//
-//
-//    if ((*_node)->left != NIL) {
-//        show(&(*_node)->left, count + 4);
-//    }
-//}
+template<class Key, class Compare, class Allocator>
+void RBTree<Key, Compare, Allocator>::clear(node_pointer node) {
+    if (node == nullptr) {
+        return;
+    }
+    clear(node->_l_child);
+    clear(node->_r_child);
+    delete node;
+}
+
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::iterator &RBTree<Key, Compare, Allocator>::iterator::operator++() {
+    _node = _get_next_node_(_node);
+    return *this;
+}
+
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::iterator RBTree<Key, Compare, Allocator>::iterator::operator++(int) &{
+    iterator tmp = iterator(_node);
+    ++(*this);
+    return tmp;
+}
+
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::iterator &RBTree<Key, Compare, Allocator>::iterator::operator--() {
+    _node = _get_prev_node_(_node);
+    return *this;
+}
+
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::iterator RBTree<Key, Compare, Allocator>::iterator::operator--(int) &{
+    iterator tmp = iterator(_node);
+    --(*this);
+    return tmp;
+}
+
+template<class Key, class Compare, class Allocator>
+rbSupport RBTree<Key, Compare, Allocator>::iterator::_get_parent_direction_(node_pointer child) {
+    return child->_parent->_l_child == child ?
+           rbSupport::LEFT_CHILD : rbSupport::RIGHT_CHILD;
+}
+
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allocator>
+::iterator::_get_leftest_node_(node_pointer node) {
+    for (; node->_l_child != nullptr;) {
+        node = node->_l_child;
+    }
+    return node;
+}
+
+
+template<typename Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allocator>
+::iterator::_get_rightest_node_(RBTree::node_pointer node) {
+    for (; node->_r_child;) {
+        node = node->_r_child;
+    }
+    return node;
+}
+
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allocator>
+::iterator::_get_next_node_(node_pointer node) {
+    if (node->_r_child != nullptr) {
+        return _get_leftest_node_(node->_r_child);
+    }
+    for (; node->_parent != nullptr;) {
+        auto dir = _get_parent_direction_(node);
+        node = node->_parent;
+        if (dir == rbSupport::LEFT_CHILD) {
+            return node;
+        }
+    }
+    return nullptr;
+}
+
+template<class Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allocator>
+::iterator::_get_prev_node_(node_pointer node) {
+    if (node->_l_child != nullptr) {
+        return _get_rightest_node_(node->_l_child);
+    }
+    for (; node->_parent != nullptr;) {
+        auto dir = _get_parent_direction_(node);
+        node = node->_parent;
+        if (dir == rbSupport::RIGHT_CHILD) {
+            return node;
+        }
+    }
+    return nullptr;
+}
+
+
+//************************************************************************************************************//
+//************************************************************************************************************//
+
+template<typename Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator>::rbTreeNode::rbTreeNode(
+        Key data,
+        rbSupport color,
+        RBTree::rbTreeNode *parent,
+        RBTree::rbTreeNode *l_child,
+        RBTree::rbTreeNode *r_child):
+        _data(data),
+        _color(color),
+        _parent(parent),
+        _l_child(l_child),
+        _r_child(r_child) {
+}
+
+template<typename Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator>::rbTreeNode::rbTreeNode(const rbTreeNode &other)
+        : _data(other._data),
+          _color(other._color),
+          _parent(other._parent),
+          _l_child(other._l_child),
+          _r_child(other._r_child) {
+}
+
+template<typename Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator>::rbTreeNode::rbTreeNode(rbTreeNode &&other) noexcept
+        : rbTreeNode(other) {
+    delete other;
+    other = nullptr;
+}
+
+template<typename Key, class Compare, class Allocator>
+RBTree<Key, Compare, Allocator>::rbTreeNode::~rbTreeNode() {
+    delete _parent;
+    delete _l_child;
+    delete _r_child;
+}
+
+template<typename Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::rbTreeNode &RBTree<Key, Compare, Allocator>
+::rbTreeNode::operator=(const RBTree::rbTreeNode &other) {
+    _data = other._data;
+    _color = other._color;
+    _parent = other._parent;
+    _l_child = other._l_child;
+    _r_child = other._r_child;
+}
+
+template<typename Key, class Compare, class Allocator>
+typename RBTree<Key, Compare, Allocator>::rbTreeNode &RBTree<Key, Compare, Allocator>
+::rbTreeNode::operator=(rbTreeNode &&other) noexcept {
+    *this = other;
+
+    other._parent = nullptr;
+    other._l_child = nullptr;
+    other._r_child = nullptr;
+}
+//************************************************************************************************************//
 
 
 #endif //TP2022_CPP_SET_RBTREE_H
