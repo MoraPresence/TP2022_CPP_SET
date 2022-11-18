@@ -15,16 +15,22 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: run_cppcheck
-        run: bash scripts/linters/linters.sh --cppcheck ./Tests/*.cpp
+        run: bash scripts/linters/linters.sh --cppcheck ./Set/*.h
+
+      - name: run_cppcheck
+        run: bash scripts/linters/linters.sh --cppcheck ./RBTree/*.h
 
   cpplint:
-      runs-on: ubuntu-latest
-      container: morapresence/mond_db_tests
+    runs-on: ubuntu-latest
+    container: morapresence/mond_db_tests
 
-      steps:
-        - uses: actions/checkout@v3
-        - name: run_cpplint
-          run: bash scripts/linters/linters.sh --cpplint ./Tests/*.cpp
+    steps:
+      - uses: actions/checkout@v3
+      - name: run_cpplint
+        run: bash scripts/linters/linters.sh --cpplint ./Set/*.h
+
+      - name: run_cpplint
+        run: bash scripts/linters/linters.sh --cpplint ./RBTree/*.h
 
   build-project:
     runs-on: ubuntu-latest
