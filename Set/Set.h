@@ -1,10 +1,14 @@
 // Copyright 2022 mora
 
+#ifndef SET_SET_H_
+#define SET_SET_H_
+
 #include "RBTree.h"
 
 #include <iostream>
 
-template <class Key, class Compare = std::less<Key>, class Allocator = std::allocator<Key>> class Set {
+template <class Key, class Compare = std::less<Key>, class Allocator = std::allocator<Key> >
+class Set {
     public:
     Set();
     Set(const Set& other);
@@ -29,18 +33,24 @@ template <class Key, class Compare = std::less<Key>, class Allocator = std::allo
     RBTree<Key>* _tree;
 };
 
-template <class Key, class Compare, class Allocator> Set<Key, Compare, Allocator>::Set() { _tree = new RBTree<Key>(); }
+template <class Key, class Compare, class Allocator>
+Set<Key, Compare, Allocator>::Set() {
+    _tree = new RBTree<Key>();
+}
 
-template <class Key, class Compare, class Allocator> Set<Key, Compare, Allocator>::Set(const Set& other) {
+template <class Key, class Compare, class Allocator>
+Set<Key, Compare, Allocator>::Set(const Set& other) {
     _tree = new RBTree<Key>(other._tree);
 }
 
-template <class Key, class Compare, class Allocator> Set<Key, Compare, Allocator>::Set(Set&& other) {
+template <class Key, class Compare, class Allocator>
+Set<Key, Compare, Allocator>::Set(Set&& other) {
     _tree = new RBTree<Key>(std::move(other._tree));
 }
 
 template <class Key, class Compare, class Allocator>
-Set<Key, Compare, Allocator>::Set(const std::initializer_list<Key>& elems) : Set() {
+Set<Key, Compare, Allocator>::Set(const std::initializer_list<Key>& elems)
+: Set() {
     for (auto& it : elems) {
         insert(it);
     }
@@ -48,34 +58,41 @@ Set<Key, Compare, Allocator>::Set(const std::initializer_list<Key>& elems) : Set
 
 template <class Key, class Compare, class Allocator>
 template <typename Iterator>
-Set<Key, Compare, Allocator>::Set(const Iterator first, const Iterator last) : Set() {
+Set<Key, Compare, Allocator>::Set(const Iterator first, const Iterator last)
+: Set() {
     for (Iterator it = first; it != last; ++it) {
         insert(*it);
     }
 }
 
-template <class Key, class Compare, class Allocator> Set<Key, Compare, Allocator>::~Set() {
+template <class Key, class Compare, class Allocator>
+Set<Key, Compare, Allocator>::~Set() {
     delete _tree;
     _tree = nullptr;
 }
 
-template <class Key, class Compare, class Allocator> void Set<Key, Compare, Allocator>::insert(const Key& value) {
+template <class Key, class Compare, class Allocator>
+void Set<Key, Compare, Allocator>::insert(const Key& value) {
     return _tree->insert(value);
 }
 
-template <class Key, class Compare, class Allocator> void Set<Key, Compare, Allocator>::erase(const Key& value) {
+template <class Key, class Compare, class Allocator>
+void Set<Key, Compare, Allocator>::erase(const Key& value) {
     return _tree->erase(value);
 }
 
-template <class Key, class Compare, class Allocator> auto Set<Key, Compare, Allocator>::begin() const {
+template <class Key, class Compare, class Allocator>
+auto Set<Key, Compare, Allocator>::begin() const {
     return _tree->begin();
 }
 
-template <class Key, class Compare, class Allocator> auto Set<Key, Compare, Allocator>::end() const {
+template <class Key, class Compare, class Allocator>
+auto Set<Key, Compare, Allocator>::end() const {
     return _tree->end();
 }
 
-template <class Key, class Compare, class Allocator> auto Set<Key, Compare, Allocator>::find(const Key& value) const {
+template <class Key, class Compare, class Allocator>
+auto Set<Key, Compare, Allocator>::find(const Key& value) const {
     return _tree->find(value);
 }
 
@@ -84,11 +101,13 @@ auto Set<Key, Compare, Allocator>::lower_bound(const Key& value) const {
     return _tree->lower_bound(value);
 }
 
-template <class Key, class Compare, class Allocator> auto Set<Key, Compare, Allocator>::size() const {
+template <class Key, class Compare, class Allocator>
+auto Set<Key, Compare, Allocator>::size() const {
     return _tree->size();
 }
 
-template <class Key, class Compare, class Allocator> auto Set<Key, Compare, Allocator>::empty() const {
+template <class Key, class Compare, class Allocator>
+auto Set<Key, Compare, Allocator>::empty() const {
     return _tree->empty();
 }
 
@@ -104,7 +123,10 @@ Set<Key, Compare, Allocator>& Set<Key, Compare, Allocator>::operator=(const Set&
 }
 
 template <class Key, class Compare, class Allocator>
-Set<Key, Compare, Allocator>& Set<Key, Compare, Allocator>::operator=(const Set&& other) noexcept {
+Set<Key, Compare, Allocator>&
+Set<Key, Compare, Allocator>::operator=(const Set&& other) noexcept {
     _tree->operator=(std::move(other._tree));
     return *this;
 }
+
+#endif // SET_SET_H_
