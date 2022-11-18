@@ -14,7 +14,7 @@ template <class Key,
     class Compare = std::less<Key>,
     class Allocator = std::allocator<Key> >
 class Set {
-    public:
+ public:
     Set();
     Set(const Set& other);
     Set(Set&& other);
@@ -34,7 +34,7 @@ class Set {
     Set& operator=(const Set&);
     Set& operator=(const Set&&) noexcept;
 
-    private:
+ private:
     RBTree<Key>* _tree;
 };
 
@@ -137,4 +137,4 @@ Set<Key, Compare, Allocator>::operator=(const Set&& other) noexcept {
     return *this;
 }
 
-#endif // SET_SET_H_
+#endif  // SET_SET_H_
