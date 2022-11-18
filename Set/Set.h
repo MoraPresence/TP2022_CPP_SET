@@ -5,9 +5,14 @@
 
 #include "RBTree.h"
 
+#include <functional>
 #include <iostream>
+#include <memory>
+#include <utility>
 
-template <class Key, class Compare = std::less<Key>, class Allocator = std::allocator<Key> >
+template <class Key,
+    class Compare = std::less<Key>,
+    class Allocator = std::allocator<Key> >
 class Set {
     public:
     Set();
@@ -49,7 +54,8 @@ Set<Key, Compare, Allocator>::Set(Set&& other) {
 }
 
 template <class Key, class Compare, class Allocator>
-Set<Key, Compare, Allocator>::Set(const std::initializer_list<Key>& elems)
+Set<Key, Compare, Allocator>
+    ::Set(const std::initializer_list<Key>& elems)
 : Set() {
     for (auto& it : elems) {
         insert(it);
@@ -97,7 +103,8 @@ auto Set<Key, Compare, Allocator>::find(const Key& value) const {
 }
 
 template <class Key, class Compare, class Allocator>
-auto Set<Key, Compare, Allocator>::lower_bound(const Key& value) const {
+auto Set<Key, Compare, Allocator>
+    ::lower_bound(const Key& value) const {
     return _tree->lower_bound(value);
 }
 
@@ -112,7 +119,8 @@ auto Set<Key, Compare, Allocator>::empty() const {
 }
 
 template <class Key, class Compare, class Allocator>
-Set<Key, Compare, Allocator>& Set<Key, Compare, Allocator>::operator=(const Set& other) {
+Set<Key, Compare, Allocator>& Set<Key, Compare, Allocator>
+    ::operator=(const Set& other) {
     if (&other == this) {
         return *this;
     }
