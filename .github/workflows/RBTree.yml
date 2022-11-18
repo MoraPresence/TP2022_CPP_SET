@@ -1,4 +1,4 @@
-name: RBTree
+name: Set
 
 on:
   push:
@@ -67,8 +67,8 @@ jobs:
       - name: Test
         run: |
           cd ${{ github.workspace }}/build/Tests/
-          chmod 777 RBTREE_tests
-          ./RBTREE_tests
+          chmod 777 SET_tests
+          ./SET_tests
 
       - name: Coverage
         run: |
@@ -100,5 +100,5 @@ jobs:
 
       - name: valgrind
         run: |
-          chmod 777 ${{github.workspace}}/build/Tests/RBTREE_tests
-          valgrind --tool=memcheck --leak-check=yes ${{github.workspace}}/build/Tests/RBTREE_tests
+          chmod 777 ${{github.workspace}}/build/Tests/SET_tests
+          valgrind --tool=memcheck --leak-check=yes ${{github.workspace}}/build/Tests/SET_tests

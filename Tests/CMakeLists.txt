@@ -13,7 +13,7 @@ endif ()
 
 find_package(GTest REQUIRED)
 
-add_executable(${PROJECT_NAME} tests.cpp)
+add_executable(${PROJECT_NAME} Tests_by_Aleksei.h Tests_Init.h tests.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC ${RBTREE_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} ${RBTREE_LIBRARIES} GTest::gtest_main)
 
