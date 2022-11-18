@@ -1,7 +1,7 @@
 // Copyright 2022 mora
 
-#ifndef TP2022_CPP_SET_RBTREE_H
-#define TP2022_CPP_SET_RBTREE_H
+#ifndef RBTREE_RBTREE_H_
+#define RBTREE_RBTREE_H_
 
 #include <iostream>
 
@@ -18,7 +18,7 @@ template<
         class Allocator  = std::allocator<Key>
 >
 class RBTree {
-public:
+ public:
     class rbTreeNode {
     public:
         rbTreeNode() = default;
@@ -33,7 +33,7 @@ public:
         rbTreeNode &operator=(rbTreeNode &&) noexcept;
         ~rbTreeNode();
 
-    public:
+ public:
 
         Key _data;
         rbSupport _color;
@@ -42,7 +42,7 @@ public:
         rbTreeNode *_r_child;
     };
 
-public:
+ public:
     using value_type = Key;
     using const_ref_type = const value_type &;
     using node_value_type = rbTreeNode;
@@ -50,7 +50,7 @@ public:
     using node_pointer = rbTreeNode *;
     using const_node_pointer = const node_pointer;
 
-public:
+ public:
     class iterator {
     public:
         iterator() = default;
@@ -60,7 +60,6 @@ public:
         iterator &operator=(const iterator &) = default;
         iterator &operator=(iterator &&) noexcept = default;
         ~iterator() = default;
-
         bool operator==(const iterator &it) const { return it._node == _node; }
         bool operator==(const std::nullptr_t &it) const { return it == _node; }
         bool operator==(const iterator &&it) const { return it._node == _node; }
@@ -70,6 +69,7 @@ public:
 
         value_type operator*() const { return _node->_data; }
         value_type *operator->() const { return &_node->_data; }
+
         iterator &operator++();
         iterator operator++(int) &;
         iterator &operator--();
@@ -77,13 +77,12 @@ public:
         iterator right() { return iterator(_get_next_node_(_node)); };
         iterator left() { return iterator(_get_prev_node_(_node)); };
 
-    private:
+ private:
         rbSupport _get_parent_direction_(node_pointer child);
         node_pointer _get_leftest_node_(node_pointer node);
         node_pointer _get_rightest_node_(node_pointer node);
         node_pointer _get_next_node_(node_pointer node);
         node_pointer _get_prev_node_(node_pointer node);
-
         node_pointer _node = nullptr;
     };
 
@@ -105,7 +104,6 @@ public:
     iterator end() const;
     iterator find(const_ref_type) const;
     iterator lower_bound(const_ref_type) const;
-
     bool ge(const Key &l, const Key &r) const;
     bool gt(const Key &l, const Key &r) const;
     bool le(const Key &l, const Key &r) const;
@@ -113,7 +111,7 @@ public:
     bool eq(const Key &l, const Key &r) const;
 
     Compare cmp = Compare();
-private:
+ private:
 
     void _insert_(node_pointer parent, rbSupport parent_child_tag, node_pointer current, const_ref_type data);
     void _erase_(node_pointer parent, rbSupport parent_child_tag, node_pointer current_node, const_ref_type data);
@@ -128,63 +126,80 @@ private:
 };
 
 template<typename Key, class Compare, class Allocator>
-bool RBTree<Key, Compare, Allocator>::ge(const Key &l, const Key &r) const {
+bool RBTree<Key, Compare, Allocator>
+        ::ge(const Key &l, const Key &r) const {
     return !cmp(l, r);
 }
 
 template<typename Key, class Compare, class Allocator>
-bool RBTree<Key, Compare, Allocator>::gt(const Key &l, const Key &r) const {
+bool RBTree<Key, Compare, Allocator>
+        ::gt(const Key &l, const Key &r) const {
     return cmp(r, l);
 }
 
 template<typename Key, class Compare, class Allocator>
-bool RBTree<Key, Compare, Allocator>::le(const Key &l, const Key &r) const {
+bool RBTree<Key, Compare, Allocator>
+        ::le(const Key &l, const Key &r) const {
     return !gt(l, r);
 }
 
 template<typename Key, class Compare, class Allocator>
-bool RBTree<Key, Compare, Allocator>::lt(const Key &l, const Key &r) const {
+bool RBTree<Key, Compare, Allocator>
+        ::lt(const Key &l, const Key &r) const {
     return cmp(l, r);
 }
 
 template<typename Key, class Compare, class Allocator>
-bool RBTree<Key, Compare, Allocator>::eq(const Key &l, const Key &r) const {
+bool RBTree<Key, Compare, Allocator>
+        ::eq(const Key &l, const Key &r) const {
     return !(cmp(l, r) || cmp(r, l));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator<(typename RBTree<Key, Compare, Allocator>::const_node_value_type &c1,
-               typename RBTree<Key, Compare, Allocator>::const_node_value_type &c2) {
+bool operator<(typename RBTree<Key, Compare, Allocator>
+        ::const_node_value_type &c1,
+               typename RBTree<Key, Compare, Allocator>
+                       ::const_node_value_type &c2) {
     return cmp(c1._data, c2._data);
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator==(typename RBTree<Key, Compare, Allocator>::const_node_value_type &c1,
-                typename RBTree<Key, Compare, Allocator>::const_node_value_type &c2) {
+bool operator==(typename RBTree<Key, Compare, Allocator>
+        ::const_node_value_type &c1,
+                typename RBTree<Key, Compare, Allocator>
+                        ::const_node_value_type &c2) {
     return !((c1 < c2) || (c2 < c1));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator!=(typename RBTree<Key, Compare, Allocator>::const_node_value_type &c1,
-                typename RBTree<Key, Compare, Allocator>::const_node_value_type &c2) {
+bool operator!=(typename RBTree<Key, Compare, Allocator>
+        ::const_node_value_type &c1,
+                typename RBTree<Key, Compare, Allocator>
+                        ::const_node_value_type &c2) {
     return !(operator==(c1, c2));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator>(typename RBTree<Key, Compare, Allocator>::const_node_value_type &c1,
-               typename RBTree<Key, Compare, Allocator>::const_node_value_type &c2) {
+bool operator>(typename RBTree<Key, Compare, Allocator>
+        ::const_node_value_type &c1,
+               typename RBTree<Key, Compare, Allocator>
+                       ::const_node_value_type &c2) {
     return operator<(c2, c1);
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator<=(typename RBTree<Key, Compare, Allocator>::const_node_value_type &c1,
-                typename RBTree<Key, Compare, Allocator>::const_node_value_type &c2) {
+bool operator<=(typename RBTree<Key, Compare, Allocator>
+        ::const_node_value_type &c1,
+                typename RBTree<Key, Compare, Allocator>
+                        ::const_node_value_type &c2) {
     return !(operator>(c1, c2));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator>=(typename RBTree<Key, Compare, Allocator>::const_node_value_type &c1,
-                typename RBTree<Key, Compare, Allocator>::const_node_value_type &c2) {
+bool operator>=(typename RBTree<Key, Compare, Allocator>
+        ::const_node_value_type &c1,
+                typename RBTree<Key, Compare, Allocator>
+                        ::const_node_value_type &c2) {
     return !(operator<(c1, c2));
 }
 
@@ -196,14 +211,15 @@ RBTree<Key, Compare, Allocator>::RBTree(const RBTree &other) : RBTree() {
 }
 
 template<class Key, class Compare, class Allocator>
-RBTree<Key, Compare, Allocator>::RBTree(RBTree &&other) noexcept : RBTree(other) {
+RBTree<Key, Compare, Allocator>::RBTree(RBTree &&other) noexcept
+: RBTree(other) {
     other._size = 0;
     other = nullptr;
 }
 
 template<class Key, class Compare, class Allocator>
-RBTree<Key, Compare, Allocator>::RBTree(const RBTree *other) : RBTree(*other)
-{
+RBTree<Key, Compare, Allocator>::RBTree(const RBTree *other)
+: RBTree(*other) {
 }
 
 template<class Key, class Compare, class Allocator>
@@ -250,7 +266,8 @@ void RBTree<Key, Compare, Allocator>::insert(const_ref_type data) {
         return;
     }
 
-    return _insert_(nullptr, rbSupport::LEFT_CHILD, _root, data);
+    return _insert_(nullptr,
+                    rbSupport::LEFT_CHILD, _root, data);
 }
 
 template<class Key, class Compare, class Allocator>
@@ -261,7 +278,8 @@ void RBTree<Key, Compare, Allocator>::_insert_(
         const_ref_type data) {
     if (current == nullptr) {
         current = new node_value_type(data, rbSupport::RED);
-        parent_child_tag == rbSupport::LEFT_CHILD ? parent->_l_child = current : parent->_r_child = current;
+        parent_child_tag == rbSupport
+        ::LEFT_CHILD ? parent->_l_child = current : parent->_r_child = current;
         current->_parent = parent;
         if (parent->_color == rbSupport::RED) {
             _insert_handle_balance_(current);
@@ -270,10 +288,12 @@ void RBTree<Key, Compare, Allocator>::_insert_(
         return;
     } else if (lt(current->_data, data)) {
         return _insert_(current,
-                        rbSupport::RIGHT_CHILD, current->_r_child, data);
+                        rbSupport
+                        ::RIGHT_CHILD, current->_r_child, data);
     } else if (gt(current->_data, data)) {
         return _insert_(current,
-                        rbSupport::LEFT_CHILD, current->_l_child, data);
+                        rbSupport
+                        ::LEFT_CHILD, current->_l_child, data);
     } else {
         return;
     }
@@ -285,7 +305,8 @@ void RBTree<Key, Compare, Allocator>::_insert_handle_balance_(node_pointer curre
            current->_parent->_color == rbSupport::RED;) {
         auto parent = current->_parent;
         auto gParent = parent->_parent;
-        auto uncle = (gParent->_l_child == parent ? gParent->_r_child : gParent->_l_child);
+        auto uncle = (gParent->_l_child == parent ? gParent->_r_child
+                : gParent->_l_child);
 
         if (gParent->_l_child == parent) {
             if (uncle && uncle != _header && uncle->_color == rbSupport::RED) {
@@ -326,7 +347,8 @@ void RBTree<Key, Compare, Allocator>::erase(const_ref_type data) {
         return;
     }
 
-    return _erase_(nullptr, rbSupport::LEFT_CHILD, _root, data);
+    return _erase_(nullptr, rbSupport
+    ::LEFT_CHILD, _root, data);
 }
 
 template<class Key, class Compare, class Allocator>
@@ -341,7 +363,8 @@ void RBTree<Key, Compare, Allocator>::_erase_(
         node_pointer tmp_nil = nullptr;
         auto delete_node_color = current_node->_color;
         node_pointer &ref_p = (parent ?
-                               (parent_child_tag == rbSupport::LEFT_CHILD ? parent->_l_child : parent->_r_child)
+                               (parent_child_tag == rbSupport
+                               ::LEFT_CHILD ? parent->_l_child : parent->_r_child)
                                       : _root);
 
         if (current_node->_l_child && current_node->_r_child) {
@@ -390,8 +413,9 @@ void RBTree<Key, Compare, Allocator>::_erase_(
             if (current_node == nullptr) {
                 tmp_nil = current_node = new node_value_type(rbSupport::BLACK);
                 current_node->_parent = parent;
-                parent_child_tag == rbSupport::LEFT_CHILD ? parent->_l_child = current_node
-                                                          : parent->_r_child = current_node;
+                parent_child_tag == rbSupport
+                ::LEFT_CHILD ? parent->_l_child = current_node
+                        : parent->_r_child = current_node;
             }
 
             _erase_handle_balance_(parent, current_node);
@@ -423,7 +447,8 @@ void RBTree<Key, Compare, Allocator>::_erase_handle_balance_(
         RBTree::node_pointer parent,
         RBTree::node_pointer current_node) {
     for (; (current_node == _header || current_node->_color
-    == rbSupport::BLACK) && current_node != _root;) {
+                                       == rbSupport::BLACK)
+                                       && current_node != _root;) {
         if (current_node == parent->_l_child) {
             auto tmp = parent->_r_child;
             if (tmp && tmp->_color == rbSupport::RED) {
@@ -433,14 +458,18 @@ void RBTree<Key, Compare, Allocator>::_erase_handle_balance_(
                 tmp = parent->_r_child;
             }
 
-            if ((tmp->_l_child == nullptr || tmp->_l_child->_color == rbSupport::BLACK)
-                && (tmp->_r_child == nullptr || tmp->_r_child->_color == rbSupport::BLACK)) {
+            if ((tmp->_l_child == nullptr || tmp->_l_child->_color
+            == rbSupport::BLACK)
+            && (tmp->_r_child == nullptr || tmp->_r_child->_color
+            == rbSupport::BLACK)) {
                 tmp->_color = rbSupport::RED;
                 current_node = parent;
                 parent = current_node->_parent;
             } else {
-                if (tmp->_r_child == nullptr || tmp->_r_child->_color == rbSupport::BLACK) {
-                    tmp->_l_child ? tmp->_l_child->_color = rbSupport::BLACK : rbSupport::RED;
+                if (tmp->_r_child == nullptr || tmp->_r_child->_color
+                == rbSupport::BLACK) {
+                    tmp->_l_child ? tmp->_l_child->_color = rbSupport
+                            ::BLACK : rbSupport::RED;
                     tmp->_color = rbSupport::RED;
                     _turn_right_(tmp);
                     tmp = parent->_r_child;
@@ -460,14 +489,18 @@ void RBTree<Key, Compare, Allocator>::_erase_handle_balance_(
                 _turn_right_(parent);
                 tmp = parent->_r_child;
             }
-            if ((tmp->_l_child == nullptr || tmp->_l_child->_color == rbSupport::BLACK)
-                && (tmp->_r_child == nullptr || tmp->_r_child->_color == rbSupport::BLACK)) {
+            if ((tmp->_l_child == nullptr || tmp->_l_child->_color
+            == rbSupport::BLACK)
+            && (tmp->_r_child == nullptr || tmp->_r_child->_color
+            == rbSupport::BLACK)) {
                 tmp->_color = rbSupport::RED;
                 current_node = parent;
                 parent = current_node->_parent;
             } else {
-                if (tmp->_l_child == nullptr || tmp->_l_child->_color == rbSupport::BLACK) {
-                    tmp->_r_child ? tmp->_r_child->_color = rbSupport::BLACK : rbSupport::RED;
+                if (tmp->_l_child == nullptr || tmp->_l_child->_color
+                == rbSupport::BLACK) {
+                    tmp->_r_child ? tmp->_r_child->_color
+                    = rbSupport::BLACK : rbSupport::RED;
                     tmp->_color = rbSupport::RED;
                     _turn_left_(tmp);
                     tmp = parent->_l_child;
@@ -486,7 +519,8 @@ void RBTree<Key, Compare, Allocator>::_erase_handle_balance_(
 
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>::node_pointer
-RBTree<Key, Compare, Allocator>::_turn_right_(RBTree::node_pointer current) {
+RBTree<Key, Compare, Allocator>
+        ::_turn_right_(RBTree::node_pointer current) {
     auto left_child = current->_l_child;
     current->_l_child = left_child->_r_child;
 
@@ -512,7 +546,8 @@ RBTree<Key, Compare, Allocator>::_turn_right_(RBTree::node_pointer current) {
 
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>::node_pointer
-RBTree<Key, Compare, Allocator>::_turn_left_(RBTree::node_pointer current) {
+RBTree<Key, Compare, Allocator>
+        ::_turn_left_(RBTree::node_pointer current) {
     auto right_child = current->_r_child;
     current->_r_child = right_child->_l_child;
 
@@ -538,7 +573,7 @@ RBTree<Key, Compare, Allocator>::_turn_left_(RBTree::node_pointer current) {
 
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>
-        ::iterator RBTree<Key, Compare, Allocator>::begin() const {
+::iterator RBTree<Key, Compare, Allocator>::begin() const {
     if (!_root) {
         return iterator(_header);
     }
@@ -551,13 +586,13 @@ typename RBTree<Key, Compare, Allocator>
 
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>
-        ::iterator RBTree<Key, Compare, Allocator>::end() const {
+::iterator RBTree<Key, Compare, Allocator>::end() const {
     return iterator(_header);
 }
 
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>
-        ::iterator RBTree<Key, Compare, Allocator>::find(const_ref_type target) const {
+::iterator RBTree<Key, Compare, Allocator>::find(const_ref_type target) const {
     auto node = _root;
     for (; node;) {
         if (lt(node->_data, target)) {
@@ -574,7 +609,7 @@ typename RBTree<Key, Compare, Allocator>
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>::iterator
 RBTree<Key, Compare, Allocator>
-        ::lower_bound(const_ref_type target) const {
+::lower_bound(const_ref_type target) const {
     auto curr = begin();
     auto prev = end();
     for (; curr != nullptr && curr != prev;) {
@@ -611,14 +646,14 @@ void RBTree<Key, Compare, Allocator>::clear(node_pointer node) {
 
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>
-        ::iterator &RBTree<Key, Compare, Allocator>::iterator::operator++() {
+::iterator &RBTree<Key, Compare, Allocator>::iterator::operator++() {
     _node = _get_next_node_(_node);
     return *this;
 }
 
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>
-        ::iterator RBTree<Key, Compare, Allocator>::iterator::operator++(int) &{
+::iterator RBTree<Key, Compare, Allocator>::iterator::operator++(int) &{
     iterator tmp = iterator(_node);
     ++(*this);
     return tmp;
@@ -626,7 +661,7 @@ typename RBTree<Key, Compare, Allocator>
 
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>
-        ::iterator &RBTree<Key, Compare, Allocator>::iterator::operator--() {
+::iterator &RBTree<Key, Compare, Allocator>::iterator::operator--() {
     if (_node->_parent == nullptr) {
         _node = _get_rightest_node_(_node->_l_child);
     } else {
@@ -637,7 +672,7 @@ typename RBTree<Key, Compare, Allocator>
 
 template<class Key, class Compare, class Allocator>
 typename RBTree<Key, Compare, Allocator>
-        ::iterator RBTree<Key, Compare, Allocator>::iterator::operator--(int) &{
+::iterator RBTree<Key, Compare, Allocator>::iterator::operator--(int) &{
     iterator tmp = iterator(_node);
     --(*this);
     return tmp;
@@ -645,13 +680,14 @@ typename RBTree<Key, Compare, Allocator>
 
 template<class Key, class Compare, class Allocator>
 rbSupport RBTree<Key, Compare, Allocator>
-        ::iterator::_get_parent_direction_(node_pointer child) {
+::iterator::_get_parent_direction_(node_pointer child) {
     return child->_parent->_l_child == child ?
            rbSupport::LEFT_CHILD : rbSupport::RIGHT_CHILD;
 }
 
 template<class Key, class Compare, class Allocator>
-typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allocator>
+typename RBTree<Key, Compare, Allocator>
+        ::node_pointer RBTree<Key, Compare, Allocator>
 ::iterator::_get_leftest_node_(node_pointer node) {
     for (; node->_l_child != nullptr;) {
         node = node->_l_child;
@@ -661,7 +697,8 @@ typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allo
 
 
 template<typename Key, class Compare, class Allocator>
-typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allocator>
+typename RBTree<Key, Compare, Allocator>
+        ::node_pointer RBTree<Key, Compare, Allocator>
 ::iterator::_get_rightest_node_(RBTree::node_pointer node) {
     for (; node->_r_child;) {
         node = node->_r_child;
@@ -670,7 +707,8 @@ typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allo
 }
 
 template<class Key, class Compare, class Allocator>
-typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allocator>
+typename RBTree<Key, Compare, Allocator>
+        ::node_pointer RBTree<Key, Compare, Allocator>
 ::iterator::_get_next_node_(node_pointer node) {
     if (node->_r_child != nullptr) {
         return _get_leftest_node_(node->_r_child);
@@ -686,7 +724,8 @@ typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allo
 }
 
 template<class Key, class Compare, class Allocator>
-typename RBTree<Key, Compare, Allocator>::node_pointer RBTree<Key, Compare, Allocator>
+typename RBTree<Key, Compare, Allocator>
+        ::node_pointer RBTree<Key, Compare, Allocator>
 ::iterator::_get_prev_node_(node_pointer node) {
     if (node->_l_child != nullptr) {
         return _get_rightest_node_(node->_l_child);
@@ -716,7 +755,8 @@ RBTree<Key, Compare, Allocator>::rbTreeNode::rbTreeNode(
 }
 
 template<typename Key, class Compare, class Allocator>
-RBTree<Key, Compare, Allocator>::rbTreeNode::rbTreeNode(const rbTreeNode &other)
+RBTree<Key, Compare, Allocator>::rbTreeNode
+::rbTreeNode(const rbTreeNode &other)
         : _data(other._data),
           _color(other._color),
           _parent(other._parent),
@@ -725,21 +765,24 @@ RBTree<Key, Compare, Allocator>::rbTreeNode::rbTreeNode(const rbTreeNode &other)
 }
 
 template<typename Key, class Compare, class Allocator>
-RBTree<Key, Compare, Allocator>::rbTreeNode::rbTreeNode(rbTreeNode &&other) noexcept
+RBTree<Key, Compare, Allocator>::rbTreeNode
+::rbTreeNode(rbTreeNode &&other) noexcept
         : rbTreeNode(other) {
     delete other;
     other = nullptr;
 }
 
 template<typename Key, class Compare, class Allocator>
-RBTree<Key, Compare, Allocator>::rbTreeNode::~rbTreeNode() {
+RBTree<Key, Compare, Allocator>::rbTreeNode
+::~rbTreeNode() {
     _parent = nullptr;
     _l_child = nullptr;
     _r_child = nullptr;
 }
 
 template<typename Key, class Compare, class Allocator>
-typename RBTree<Key, Compare, Allocator>::rbTreeNode &RBTree<Key, Compare, Allocator>
+typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &RBTree<Key, Compare, Allocator>
 ::rbTreeNode::operator=(const RBTree::rbTreeNode &other) {
     _data = other._data;
     _color = other._color;
@@ -749,7 +792,8 @@ typename RBTree<Key, Compare, Allocator>::rbTreeNode &RBTree<Key, Compare, Alloc
 }
 
 template<typename Key, class Compare, class Allocator>
-typename RBTree<Key, Compare, Allocator>::rbTreeNode &RBTree<Key, Compare, Allocator>
+typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &RBTree<Key, Compare, Allocator>
 ::rbTreeNode::operator=(rbTreeNode &&other) noexcept {
     *this = other;
 
@@ -758,4 +802,4 @@ typename RBTree<Key, Compare, Allocator>::rbTreeNode &RBTree<Key, Compare, Alloc
     other._r_child = nullptr;
 }
 
-#endif //TP2022_CPP_SET_RBTREE_H
+#endif //RBTREE_RBTREE_H_
