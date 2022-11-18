@@ -31,6 +31,6 @@ fi
 
 if [ "$1" = "--cppcheck" ] || [ "$1" = "--all" ]; then
   print_header "RUN cppcheck"
-  check_log "cppcheck $2 --enable=all --inconclusive --error-exitcode=1 --suppress=missingIncludeSystem --suppress=unusedFunction" "cppcheck failed"
+  check_log "cppcheck $2 --enable=all --inconclusive --language=C++ --error-exitcode=1 --suppress=missingIncludeSystem --suppress=unusedFunction" "cppcheck failed"
 fi
 print_header "SUCCESS"

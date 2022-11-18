@@ -38,5 +38,5 @@ SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
 Standard: Auto
-TabWidth: 4
 SortIncludes: false
+UseTab: Never
