@@ -26,7 +26,8 @@ class RBTree {
      public:
         rbTreeNode() = default;
         rbTreeNode(Key data,
-                   rbSupport color, rbTreeNode *parent, rbTreeNode *l_child, rbTreeNode *r_child);
+                   rbSupport color, rbTreeNode *parent,
+                   rbTreeNode *l_child, rbTreeNode *r_child);
         explicit rbTreeNode(rbSupport color) : _color(color) {}
         rbTreeNode(const Key &data, rbSupport color)
                 : _data(data), _color(color), _parent(nullptr),
@@ -38,7 +39,6 @@ class RBTree {
         ~rbTreeNode();
 
      public:
-
         Key _data;
         rbSupport _color;
         rbTreeNode *_parent;
@@ -78,8 +78,8 @@ class RBTree {
         iterator operator++(int) &;
         iterator &operator--();
         iterator operator--(int) &;
-        iterator right() { return iterator(_get_next_node_(_node)); };
-        iterator left() { return iterator(_get_prev_node_(_node)); };
+        iterator right() { return iterator(_get_next_node_(_node)); }
+        iterator left() { return iterator(_get_prev_node_(_node)); }
 
      private:
         rbSupport _get_parent_direction_(node_pointer child);
@@ -90,11 +90,11 @@ class RBTree {
         node_pointer _node = nullptr;
     };
 
-public:
+ public:
     RBTree() : _size(0), _root(nullptr), _header(new node_value_type) {}
     RBTree(const RBTree &);
     RBTree(RBTree &&) noexcept;
-    RBTree(const RBTree *);
+    explicit RBTree(const RBTree *);
     RBTree &operator=(const RBTree &);
     RBTree &operator=(RBTree &&) noexcept;
     ~RBTree();
@@ -115,8 +115,8 @@ public:
     bool eq(const Key &l, const Key &r) const;
 
     Compare cmp = Compare();
- private:
 
+ private:
     void _insert_(node_pointer parent, rbSupport parent_child_tag,
                   node_pointer current, const_ref_type data);
     void _erase_(node_pointer parent, rbSupport parent_child_tag,
@@ -162,50 +162,50 @@ bool RBTree<Key, Compare, Allocator>
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator<(typename RBTree<Key, Compare, Allocator>
-        ::const_node_value_type &c1,
-               typename RBTree<Key, Compare, Allocator>
-                       ::const_node_value_type &c2) {
+bool operator<(const typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &c1,
+        const typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &c2) {
     return cmp(c1._data, c2._data);
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator==(typename RBTree<Key, Compare, Allocator>
-        ::const_node_value_type &c1,
-                typename RBTree<Key, Compare, Allocator>
-                        ::const_node_value_type &c2) {
+bool operator==(const typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &c1,
+        const typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &c2) {
     return !((c1 < c2) || (c2 < c1));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator!=(typename RBTree<Key, Compare, Allocator>
-        ::const_node_value_type &c1,
-                typename RBTree<Key, Compare, Allocator>
-                        ::const_node_value_type &c2) {
+bool operator!=(const typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &c1,
+        const typename RBTree<Key, Compare, Allocator>
+                ::rbTreeNode &c2) {
     return !(operator==(c1, c2));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator>(typename RBTree<Key, Compare, Allocator>
-        ::const_node_value_type &c1,
-               typename RBTree<Key, Compare, Allocator>
-                       ::const_node_value_type &c2) {
+bool operator>(const typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &c1,
+        const typename RBTree<Key, Compare, Allocator>
+                ::rbTreeNode &c2) {
     return operator<(c2, c1);
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator<=(typename RBTree<Key, Compare, Allocator>
-        ::const_node_value_type &c1,
-                typename RBTree<Key, Compare, Allocator>
-                        ::const_node_value_type &c2) {
+bool operator<=(const typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &c1,
+        const typename RBTree<Key, Compare, Allocator>
+                ::rbTreeNode &c2) {
     return !(operator>(c1, c2));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator>=(typename RBTree<Key, Compare, Allocator>
-        ::const_node_value_type &c1,
-                typename RBTree<Key, Compare, Allocator>
-                        ::const_node_value_type &c2) {
+bool operator>=(const typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &c1,
+        const typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode &c2) {
     return !(operator<(c1, c2));
 }
 
@@ -378,7 +378,8 @@ void RBTree<Key, Compare, Allocator>::_erase_(
         if (current_node->_l_child && current_node->_r_child) {
             auto prev = current_node->_l_child;
             auto curr = prev;
-            for (; curr && curr->_r_child; prev = curr, curr = curr->_r_child){};
+            for (; curr && curr->_r_child; prev = curr,
+                    curr = curr->_r_child){}
             delete_node_color = curr->_color;
             if (curr == prev) {
                 current_node->_data = curr->_data;
