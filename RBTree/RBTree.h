@@ -379,7 +379,7 @@ void RBTree<Key, Compare, Allocator>::_erase_(
             auto prev = current_node->_l_child;
             auto curr = prev;
             for (; curr && curr->_r_child; prev = curr,
-                    curr = curr->_r_child){}
+                    curr = curr->_r_child) {}
             delete_node_color = curr->_color;
             if (curr == prev) {
                 current_node->_data = curr->_data;
