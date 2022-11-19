@@ -162,10 +162,10 @@ bool RBTree<Key, Compare, Allocator>
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator<(const typename RBTree<Key, Compare, Allocator>
-        ::rbTreeNode &c1,
-        const typename RBTree<Key, Compare, Allocator>
-        ::rbTreeNode &c2) {
+bool operator<(typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c1,
+        typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c2) {
     return cmp(c1._data, c2._data);
 }
 
