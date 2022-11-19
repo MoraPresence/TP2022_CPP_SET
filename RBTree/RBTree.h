@@ -170,42 +170,42 @@ bool operator<(const typename RBTree<Key, Compare, Allocator>
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator==(const typename RBTree<Key, Compare, Allocator>
-        ::rbTreeNode &c1,
-        const typename RBTree<Key, Compare, Allocator>
-        ::rbTreeNode &c2) {
+bool operator==(typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c1,
+        typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c2) {
     return !((c1 < c2) || (c2 < c1));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator!=(const typename RBTree<Key, Compare, Allocator>
-        ::rbTreeNode &c1,
-        const typename RBTree<Key, Compare, Allocator>
-                ::rbTreeNode &c2) {
+bool operator!=(typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c1,
+         typename RBTree<Key, Compare, Allocator>
+         ::rbTreeNode const &c2) {
     return !(operator==(c1, c2));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator>(const typename RBTree<Key, Compare, Allocator>
-        ::rbTreeNode &c1,
-        const typename RBTree<Key, Compare, Allocator>
-                ::rbTreeNode &c2) {
+bool operator>(typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c1,
+        typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c2) {
     return operator<(c2, c1);
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator<=(const typename RBTree<Key, Compare, Allocator>
-        ::rbTreeNode &c1,
-        const typename RBTree<Key, Compare, Allocator>
-                ::rbTreeNode &c2) {
+bool operator<=(typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c1,
+        typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c2) {
     return !(operator>(c1, c2));
 }
 
 template<class Key, class Compare, class Allocator>
-bool operator>=(const typename RBTree<Key, Compare, Allocator>
-        ::rbTreeNode &c1,
-        const typename RBTree<Key, Compare, Allocator>
-        ::rbTreeNode &c2) {
+bool operator>=(typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c1,
+        typename RBTree<Key, Compare, Allocator>
+        ::rbTreeNode const &c2) {
     return !(operator<(c1, c2));
 }
 
