@@ -1,10 +1,10 @@
 # TP2022_CPP_SET
 [![CMake](https://github.com/MoraPresence/TP2022_CPP_SET/actions/workflows/RBTree.yml/badge.svg)](https://github.com/MoraPresence/TP2022_CPP_SET/actions/workflows/RBTree.yml)
 Std::Set Implementation
-#Домашнее задание 5:
-#STL-совместимый контейнер
+# Домашнее задание 5:
+# STL-совместимый контейнер
 
-###Вариант #1
+## Вариант #1
  
 Необходимо реализовать упрощённую версию упорядоченного множества из STL Set<T>. Асимптотики всех операций должны быть аналогичными std::set. Сравнение элементов типа T осуществлять только при помощи оператора <. 
 Необходимо поддержать следующие методы:
