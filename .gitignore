@@ -1,3 +1,6 @@
+# Cmake
+cmake-build*
+
 # Prerequisites
 *.d
 
@@ -30,3 +33,10 @@
 *.exe
 *.out
 *.app
+
+#IDE
+.idea
+.vscode
+
+# Logs
+*.log
